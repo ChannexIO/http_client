@@ -17,7 +17,7 @@ defmodule HTTPClient do
 
       See `request/5` for more detailed information.
       """
-      @spec get(Adapter.url(), Adapter.header(), Adapter.options()) :: Adapter.response()
+      @spec get(Adapter.url(), Adapter.headers(), Adapter.options()) :: Adapter.response()
       def get(url, headers, options) do
         @adapter.get(url, headers, options)
       end
@@ -27,7 +27,7 @@ defmodule HTTPClient do
 
       See `request/5` for more detailed information.
       """
-      @spec post(Adapter.url(), Adapter.body(), Adapter.header(), Adapter.options()) ::
+      @spec post(Adapter.url(), Adapter.body(), Adapter.headers(), Adapter.options()) ::
               Adapter.response()
       def post(url, body, headers, options) do
         @adapter.post(url, body, headers, options)
@@ -38,7 +38,7 @@ defmodule HTTPClient do
 
       See `request/5` for more detailed information.
       """
-      @spec put(Adapter.url(), Adapter.body(), Adapter.header(), Adapter.options()) ::
+      @spec put(Adapter.url(), Adapter.body(), Adapter.headers(), Adapter.options()) ::
               Adapter.response()
       def put(url, body, headers, options) do
         @adapter.put(url, body, headers, options)
@@ -49,7 +49,7 @@ defmodule HTTPClient do
 
       See `request/5` for more detailed information.
       """
-      @spec patch(Adapter.url(), Adapter.body(), Adapter.header(), Adapter.options()) ::
+      @spec patch(Adapter.url(), Adapter.body(), Adapter.headers(), Adapter.options()) ::
               Adapter.response()
       def patch(url, body, headers, options) do
         @adapter.patch(url, body, headers, options)
@@ -60,7 +60,7 @@ defmodule HTTPClient do
 
       See `request/5` for more detailed information.
       """
-      @spec delete(Adapter.url(), Adapter.header(), Adapter.options()) :: Adapter.response()
+      @spec delete(Adapter.url(), Adapter.headers(), Adapter.options()) :: Adapter.response()
       def delete(url, headers, options) do
         @adapter.delete(url, headers, options)
       end
@@ -84,7 +84,7 @@ defmodule HTTPClient do
               Adapter.method(),
               Adapter.url(),
               Adapter.body(),
-              Adapter.header(),
+              Adapter.headers(),
               Adapter.options()
             ) :: Adapter.response()
       def request(method, url, body, headers, options) do
