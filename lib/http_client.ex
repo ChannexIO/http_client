@@ -1,10 +1,9 @@
 defmodule HTTPClient do
-  @moduledoc """
-  Facade for HTTP client.
-
-  This module is meant to be `use`'d in custom modules in order to wrap the
-  functionalities provided by supported HTTP clients.
-  """
+  @external_resource "README.md"
+  @moduledoc "README.md"
+             |> File.read!()
+             |> String.split("<!-- MDOC !-->")
+             |> Enum.fetch!(1)
 
   alias HTTPClient.Adapter
 
