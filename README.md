@@ -4,7 +4,7 @@
 
 Facade for HTTP client.
 
-This module is meant to be `use`'d in custom modules in order to wrap the functionalities 
+HTTPClient is meant to be `use`'d in custom modules in order to wrap the functionalities 
 provided by supported HTTP clients.
 
 ## Usage
