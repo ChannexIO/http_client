@@ -1,4 +1,4 @@
-defmodule HttpClient.Adapter do
+defmodule HTTPClient.Adapter do
   @moduledoc """
   An HTTP client behaviour definition.
 
@@ -15,9 +15,9 @@ defmodule HttpClient.Adapter do
   All functions must return response defined in `t:response/0`.
   """
 
-  alias HttpClient.Adapters.{Finch, HTTPoison}
+  alias HTTPClient.Adapters.{Finch, HTTPoison}
 
-  @type response() :: {:ok, HttpClient.Response.t()} | {:error, HttpClient.Error.t()}
+  @type response() :: {:ok, HTTPClient.Response.t()} | {:error, HTTPClient.Error.t()}
 
   @type method() :: Finch.method() | HTTPoison.method()
   @type url() :: Finch.url() | HTTPoison.url()
@@ -51,10 +51,10 @@ defmodule HttpClient.Adapter do
       choose_adapter(valid[:adapter])
     else
       {:error, reason} ->
-        raise ArgumentError, "got invalid configuration for HttpClient #{reason}"
+        raise ArgumentError, "got invalid configuration for HTTPClient #{reason}"
     end
   end
 
-  defp choose_adapter(:finch), do: HttpClient.Adapters.Finch
-  defp choose_adapter(:httpoison), do: HttpClient.Adapters.HTTPoison
+  defp choose_adapter(:finch), do: HTTPClient.Adapters.Finch
+  defp choose_adapter(:httpoison), do: HTTPClient.Adapters.HTTPoison
 end

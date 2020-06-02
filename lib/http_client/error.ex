@@ -1,4 +1,4 @@
-defmodule HttpClient.Error do
+defmodule HTTPClient.Error do
   @moduledoc """
   An error of a request.
   """

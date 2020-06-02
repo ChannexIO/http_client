@@ -1,4 +1,4 @@
-defmodule HttpClient.Response do
+defmodule HTTPClient.Response do
   @moduledoc """
   A response to a request.
   """

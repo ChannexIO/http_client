@@ -1,9 +1,9 @@
-defmodule HttpClient.Adapters.HTTPoison do
+defmodule HTTPClient.Adapters.HTTPoison do
   @moduledoc """
-  Implementation of `HttpClient.Adapter` behaviour using HTTPoison HTTP client.
+  Implementation of `HTTPClient.Adapter` behaviour using HTTPoison HTTP client.
   """
 
-  alias HttpClient.{Error, Response, Telemetry}
+  alias HTTPClient.{Error, Response, Telemetry}
 
   @type method() :: HTTPoison.Request.method()
   @type url() :: HTTPoison.Request.url()
@@ -11,7 +11,7 @@ defmodule HttpClient.Adapters.HTTPoison do
   @type body() :: HTTPoison.Request.body()
   @type options() :: HTTPoison.Request.options()
 
-  @behaviour HttpClient.Adapter
+  @behaviour HTTPClient.Adapter
 
   @impl true
   def request(method, url, body, headers, options) do

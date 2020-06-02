@@ -1,4 +1,4 @@
-# HttpClient
+# HTTPClient
 
 Facade for HTTP client.
 

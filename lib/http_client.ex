@@ -1,4 +1,4 @@
-defmodule HttpClient do
+defmodule HTTPClient do
   @moduledoc """
   Facade for HTTP client.
 
@@ -6,7 +6,7 @@ defmodule HttpClient do
   functionalities provided by supported HTTP clients.
   """
 
-  alias HttpClient.Adapter
+  alias HTTPClient.Adapter
 
   defmacro __using__(opts) do
     quote do
@@ -78,8 +78,8 @@ defmodule HttpClient do
         * `headers` - HTTP headers as an keyword (e.g., `[{"Accept", "application/json"}]`)
         * `options` - Keyword list of options
 
-      Returns `{:ok, HttpClient.Response.t()}` if the request is successful,
-      `{:error, HttpClient.Error.t()}` otherwise.
+      Returns `{:ok, HTTPClient.Response.t()}` if the request is successful,
+      `{:error, HTTPClient.Error.t()}` otherwise.
       """
       @spec request(
               Adapter.method(),

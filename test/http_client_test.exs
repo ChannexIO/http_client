@@ -1,19 +1,19 @@
-defmodule HttpClientTest do
+defmodule HTTPClientTest do
   use ExUnit.Case
-  doctest HttpClient
+  doctest HTTPClient
 
-  alias HttpClient.{Error, Response}
+  alias HTTPClient.{Error, Response}
 
   setup do
     {:ok, bypass: Bypass.open()}
   end
 
   defmodule TestDefaultRequest do
-    use HttpClient
+    use HTTPClient
   end
 
   defmodule TestFinchRequest do
-    use HttpClient, adapter: :finch
+    use HTTPClient, adapter: :finch
   end
 
   describe "Finch HTTP Client" do

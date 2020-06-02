@@ -1,14 +1,14 @@
-defmodule HttpClient.Application do
+defmodule HTTPClient.Application do
   @moduledoc false
 
   use Application
 
   def start(_type, _args) do
     children = [
-      {Finch, name: FinchHttpClient}
+      {Finch, name: FinchHTTPClient}
     ]
 
-    opts = [strategy: :one_for_one, name: HttpClient.Supervisor]
+    opts = [strategy: :one_for_one, name: HTTPClient.Supervisor]
     Supervisor.start_link(children, opts)
   end
 end

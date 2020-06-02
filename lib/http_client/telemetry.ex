@@ -1,10 +1,10 @@
-defmodule HttpClient.Telemetry do
+defmodule HTTPClient.Telemetry do
   @moduledoc """
   Telemetry integration.
 
   Unless specified, all time's are in `:native` units.
 
-  HttpClient executes the following events:
+  HTTPClient executes the following events:
 
   * `[:http_client, :request, :start]` - Executed before sending a request.
 

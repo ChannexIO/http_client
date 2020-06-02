@@ -1,9 +1,9 @@
-defmodule HttpClient.Adapters.Finch do
+defmodule HTTPClient.Adapters.Finch do
   @moduledoc """
-  Implementation of `HttpClient.Adapter` behaviour using Finch HTTP client.
+  Implementation of `HTTPClient.Adapter` behaviour using Finch HTTP client.
   """
 
-  alias HttpClient.{Error, Response, Telemetry}
+  alias HTTPClient.{Error, Response, Telemetry}
 
   @type method() :: Finch.http_method()
   @type url() :: Finch.url()
@@ -11,7 +11,7 @@ defmodule HttpClient.Adapters.Finch do
   @type body() :: Finch.body()
   @type options() :: keyword()
 
-  @behaviour HttpClient.Adapter
+  @behaviour HTTPClient.Adapter
 
   @impl true
   def request(method, url, body, headers, options) do
@@ -55,7 +55,7 @@ defmodule HttpClient.Adapters.Finch do
 
     start_time = Telemetry.start(:request, metadata)
 
-    case Finch.request(FinchHttpClient, method, url, headers, body, options) do
+    case Finch.request(FinchHTTPClient, method, url, headers, body, options) do
       {:ok, %{status: status, body: body, headers: headers}} ->
         metadata = Map.put(metadata, :status_code, status)
         Telemetry.stop(:request, start_time, metadata)

@@ -1,4 +1,4 @@
-defmodule HttpClient.MixProject do
+defmodule HTTPClient.MixProject do
   use Mix.Project
 
   def project do
@@ -14,7 +14,7 @@ defmodule HttpClient.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {HttpClient.Application, []}
+      mod: {HTTPClient.Application, []}
     ]
   end
 
