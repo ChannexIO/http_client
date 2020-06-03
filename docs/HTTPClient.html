@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.22.1">
+    <meta name="project" content="HTTPClient v0.1.0">
+    <title>HTTPClient — HTTPClient v0.1.0</title>
+    <link rel="stylesheet" href="dist/elixir-e589b8fad3dab6230c65.css" />
+    <script src="dist/sidebar_items-68b445ee84.js"></script>
+      <script src="docs_config.js"></script>
+    <script async src="dist/app-5c0c23dfec2d63ae33a2.js"></script>
+  </head>
+  <body data-type="modules">
+    <script>try { if(localStorage.getItem('night-mode') === 'true') document.body.className += ' night-mode'; } catch (e) { }</script>
+<div class="main">
+
+<button class="sidebar-button sidebar-toggle">
+  <span class="icon-menu" title="Collapse/expand sidebar"></span>
+</button>
+
+<section class="sidebar">
+  <form class="sidebar-search" action="search.html">
+    <button type="submit" class="search-button">
+      <span class="icon-search" aria-hidden="true"></span>
+    </button>
+    <button type="button" tabindex="-1" class="search-close-button">
+      <span class="icon-cross" title="Cancel search"></span>
+    </button>
+    <label class="search-label">
+      <input name="q" type="text" id="search-list" class="search-input" placeholder="Search..." aria-label="Search" autocomplete="off" />
+    </label>
+  </form>
+
+  <div class="autocomplete">
+    <div class="autocomplete-results">
+    </div>
+  </div>
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectDetails">
+      <a href="HTTPClient.html" class="sidebar-projectName">
+HTTPClient      </a>
+      <h2 class="sidebar-projectVersion">
+        v0.1.0
+      </h2>
+    </div>
+  </div>
+
+  <ul class="sidebar-listNav">
+    <li><a id="extras-list" href="#full-list">Pages</a></li>
+
+      <li><a id="modules-list" href="#full-list">Modules</a></li>
+
+  </ul>
+  <div class="gradient"></div>
+  <ul id="full-list" class="sidebar-fullList"></ul>
+</section>
+
+<section class="content">
+  <div class="content-outer">
+    <div id="content" class="content-inner">
+
+      <h1>
+        <small class="app-vsn">HTTPClient v0.1.0</small>
+HTTPClient          <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client.ex#L1" title="View Source" class="view-source" rel="help">
+            <span class="icon-code" aria-hidden="true"></span>
+            <span class="sr-only">View Source</span>
+          </a>
+      </h1>
+
+
+        <section id="moduledoc">
+<h1>HTTPClient</h1><p>Facade for HTTP client.</p><p>HTTPClient is meant to be <code class="inline">use</code>'d in custom modules in order to wrap the functionalities 
+provided by supported HTTP clients.</p><h2 id="module-usage" class="section-heading">
+  <a href="#module-usage" class="hover-link"><span class="icon-link" aria-hidden="true"></span></a>
+  Usage
+</h2>
+<p>For example, to build API clients around HTTPClient:</p><pre><code class="nohighlight makeup elixir"><span class="kd">defmodule</span><span class="w"> </span><span class="nc">GitHub</span><span class="w"> </span><span class="k" data-group-id="2106751777-1">do</span><span class="w">
+  </span><span class="kn">use</span><span class="w"> </span><span class="nc">HTTPClient</span><span class="w">
+  
+  </span><span class="na">@endpoint</span><span class="w"> </span><span class="s">&quot;https://api.github.com&quot;</span><span class="w">
+    
+  </span><span class="kd">def</span><span class="w"> </span><span class="nf">read_repo</span><span class="p" data-group-id="2106751777-2">(</span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">headers</span><span class="p">,</span><span class="w"> </span><span class="n">option</span><span class="p" data-group-id="2106751777-2">)</span><span class="w"> </span><span class="k" data-group-id="2106751777-3">do</span><span class="w">
+    </span><span class="n">get</span><span class="p" data-group-id="2106751777-4">(</span><span class="na">@endpoint</span><span class="w"> </span><span class="o">&lt;&gt;</span><span class="w"> </span><span class="n">url</span><span class="p">,</span><span class="w"> </span><span class="n">headers</span><span class="p">,</span><span class="w"> </span><span class="n">option</span><span class="p" data-group-id="2106751777-4">)</span><span class="w">
+  </span><span class="k" data-group-id="2106751777-3">end</span><span class="w">
+</span><span class="k" data-group-id="2106751777-1">end</span></code></pre><p>This way, all requests done through the <code class="inline">GitHub</code> module will be done to the GitHub API:</p><pre><code class="nohighlight makeup elixir"><span class="nc">GitHub</span><span class="o">.</span><span class="n">read_repo</span><span class="p" data-group-id="1608312961-1">(</span><span class="s">&quot;/repos/ChannexIO/http_client&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">headers</span><span class="p">,</span><span class="w"> </span><span class="n">options</span><span class="p" data-group-id="1608312961-1">)</span><span class="w">
+</span><span class="c1">#=&gt; will issue a GET request at https://api.github.com/repos/ChannexIO/http_client</span></code></pre><p>By default requests done through HTTPoison client, to use Finch, for example, 
+add <code class="inline">use</code> options:</p><pre><code class="nohighlight makeup elixir"><span class="kn">use</span><span class="w"> </span><span class="nc">HTTPClient</span><span class="p">,</span><span class="w"> </span><span class="ss">adapter</span><span class="p">:</span><span class="w"> </span><span class="ss">:finch</span></code></pre><h2 id="module-telemetry" class="section-heading">
+  <a href="#module-telemetry" class="hover-link"><span class="icon-link" aria-hidden="true"></span></a>
+  Telemetry
+</h2>
+<p>HTTPClient uses Telemetry to provide the following events:</p><ul><li><p><code class="inline">[:http_client, :request, :start]</code> - Executed before sending a request.</p><h4>Measurements:</h4><ul><li><code class="inline">:system_time</code> - The system time</li></ul><h4>Metadata:</h4><ul><li><code class="inline">:method</code> - The method used in the request.</li><li><code class="inline">:url</code> - The url address.</li><li><code class="inline">:options</code> - The request options.</li></ul></li><li><p><code class="inline">[:http_client, :request, :stop]</code> - Executed after a request is finished.</p><h4>Measurements:</h4><ul><li><code class="inline">:duration</code> - Duration to make the request.</li></ul><h4>Metadata:</h4><ul><li><code class="inline">:method</code> - The method used in the request.</li><li><code class="inline">:url</code> - The url address.</li><li><code class="inline">:options</code> - The request options.</li><li><code class="inline">:status_code</code> - This value is optional. The response status code.</li><li><code class="inline">:error</code> - This value is optional. It includes any errors that occured while making the request.</li></ul></li></ul><p>See the <a href="HTTPClient.Telemetry.html"><code class="inline">HTTPClient.Telemetry</code></a> module for details on specific events.</p>        </section>
+
+
+      <footer class="footer">
+        <p>
+          <span class="line">
+            Built using
+            <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener">ExDoc</a> (v0.22.1),
+          </span>
+          <span class="line">
+            designed by
+            <a href="https://twitter.com/dignifiedquire" target="_blank" rel="noopener" title="@dignifiedquire">Friedel Ziegelmayer</a>.
+          </span>
+        </p>
+        <p>
+          <button class="line footer-button display-shortcuts-help">
+            Display keyboard shortcuts
+          </button>
+          <button class="line footer-button night-mode-toggle">
+            Toggle night mode
+          </button>
+          <button class="line footer-button display-quick-switch">
+            Go to a HexDocs package
+          </button>
+          <button class="line footer-button tooltips-toggle">
+            <span class="tooltips-option-disable">Disable tooltips</span>
+            <span class="tooltips-option-enable">Enable tooltips</span>
+          </button>
+        </p>
+      </footer>
+    </div>
+  </div>
+</section>
+</div>
+  </body>
+</html>

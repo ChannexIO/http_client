@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="ExDoc v0.22.1">
+    <meta name="project" content="HTTPClient v0.1.0">
+    <title>HTTPClient.Adapter — HTTPClient v0.1.0</title>
+    <link rel="stylesheet" href="dist/elixir-e589b8fad3dab6230c65.css" />
+    <script src="dist/sidebar_items-68b445ee84.js"></script>
+      <script src="docs_config.js"></script>
+    <script async src="dist/app-5c0c23dfec2d63ae33a2.js"></script>
+  </head>
+  <body data-type="modules">
+    <script>try { if(localStorage.getItem('night-mode') === 'true') document.body.className += ' night-mode'; } catch (e) { }</script>
+<div class="main">
+
+<button class="sidebar-button sidebar-toggle">
+  <span class="icon-menu" title="Collapse/expand sidebar"></span>
+</button>
+
+<section class="sidebar">
+  <form class="sidebar-search" action="search.html">
+    <button type="submit" class="search-button">
+      <span class="icon-search" aria-hidden="true"></span>
+    </button>
+    <button type="button" tabindex="-1" class="search-close-button">
+      <span class="icon-cross" title="Cancel search"></span>
+    </button>
+    <label class="search-label">
+      <input name="q" type="text" id="search-list" class="search-input" placeholder="Search..." aria-label="Search" autocomplete="off" />
+    </label>
+  </form>
+
+  <div class="autocomplete">
+    <div class="autocomplete-results">
+    </div>
+  </div>
+
+  <div class="sidebar-header">
+    <div class="sidebar-projectDetails">
+      <a href="HTTPClient.html" class="sidebar-projectName">
+HTTPClient      </a>
+      <h2 class="sidebar-projectVersion">
+        v0.1.0
+      </h2>
+    </div>
+  </div>
+
+  <ul class="sidebar-listNav">
+    <li><a id="extras-list" href="#full-list">Pages</a></li>
+
+      <li><a id="modules-list" href="#full-list">Modules</a></li>
+
+  </ul>
+  <div class="gradient"></div>
+  <ul id="full-list" class="sidebar-fullList"></ul>
+</section>
+
+<section class="content">
+  <div class="content-outer">
+    <div id="content" class="content-inner">
+
+      <h1>
+        <small class="app-vsn">HTTPClient v0.1.0</small>
+HTTPClient.Adapter <small>behaviour</small>          <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L1" title="View Source" class="view-source" rel="help">
+            <span class="icon-code" aria-hidden="true"></span>
+            <span class="sr-only">View Source</span>
+          </a>
+      </h1>
+
+
+        <section id="moduledoc">
+<p>An HTTP client behaviour definition.</p><p>Adapters that implement the HTTP client behaviour must support the following
+list of functions:</p><ul><li><a href="#c:request/5"><code class="inline">request/5</code></a> - Issues an HTTP request with the given method to the given url</li><li><a href="#c:get/3"><code class="inline">get/3</code></a> - issues GET request to the given url</li><li><a href="#c:post/4"><code class="inline">post/4</code></a> - issues POST request to the given url</li><li><a href="#c:put/4"><code class="inline">put/4</code></a> - issues PUT request to the given url</li><li><a href="#c:patch/4"><code class="inline">patch/4</code></a> - issues PATCH request to the given url</li><li><a href="#c:delete/3"><code class="inline">delete/3</code></a> - issues DELETE request to the given url</li></ul><p>All functions must return response defined in <a href="#t:response/0"><code class="inline">response/0</code></a>.</p>        </section>
+
+        <section id="summary" class="details-list">
+          <h1 class="section-heading">
+            <a class="hover-link" href="#summary">
+              <span class="icon-link" aria-hidden="true"></span>
+              <span class="sr-only">Link to this section</span>
+            </a>
+            Summary
+          </h1>
+  <div class="summary-types summary">
+    <h2>
+      <a href="#types">Types</a>
+    </h2>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:body/0">body()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:headers/0">headers()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:method/0">method()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:options/0">options()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:response/0">response()</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#t:url/0">url()</a>
+  </div>
+</div>
+  </div>
+  <div class="summary-functions summary">
+    <h2>
+      <a href="#functions">Functions</a>
+    </h2>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#set/1">set(opts)</a>
+  </div>
+    <div class="summary-synopsis"><p>Sets HTTP client implementation adapter based on the use options.</p></div>
+</div>
+  </div>
+  <div class="summary-callbacks summary">
+    <h2>
+      <a href="#callbacks">Callbacks</a>
+    </h2>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#c:delete/3">delete(url, headers, options)</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#c:get/3">get(url, headers, options)</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#c:patch/4">patch(url, body, headers, options)</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#c:post/4">post(url, body, headers, options)</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#c:put/4">put(url, body, headers, options)</a>
+  </div>
+</div>
+<div class="summary-row">
+  <div class="summary-signature">
+    <a href="#c:request/5">request(method, url, body, headers, options)</a>
+  </div>
+</div>
+  </div>
+        </section>
+
+        <section id="types" class="details-list">
+          <h1 class="section-heading">
+            <a class="hover-link" href="#types">
+              <span class="icon-link" aria-hidden="true"></span>
+              <span class="sr-only">Link to this section</span>
+            </a>
+Types          </h1>
+          <div class="types-list">
+<section class="detail" id="t:body/0">
+  <div class="detail-header">
+    <a href="#t:body/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">body()</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L25" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>body() ::
+  <a href="HTTPClient.Adapters.Finch.html#t:body/0">HTTPClient.Adapters.Finch.body</a>() | <a href="HTTPClient.Adapters.HTTPoison.html#t:body/0">HTTPClient.Adapters.HTTPoison.body</a>()</pre>
+      </div>
+
+  </section>
+</section>
+<section class="detail" id="t:headers/0">
+  <div class="detail-header">
+    <a href="#t:headers/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">headers()</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L24" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>headers() ::
+  <a href="HTTPClient.Adapters.Finch.html#t:headers/0">HTTPClient.Adapters.Finch.headers</a>() | <a href="HTTPClient.Adapters.HTTPoison.html#t:headers/0">HTTPClient.Adapters.HTTPoison.headers</a>()</pre>
+      </div>
+
+  </section>
+</section>
+<section class="detail" id="t:method/0">
+  <div class="detail-header">
+    <a href="#t:method/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">method()</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L22" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>method() ::
+  <a href="HTTPClient.Adapters.Finch.html#t:method/0">HTTPClient.Adapters.Finch.method</a>() | <a href="HTTPClient.Adapters.HTTPoison.html#t:method/0">HTTPClient.Adapters.HTTPoison.method</a>()</pre>
+      </div>
+
+  </section>
+</section>
+<section class="detail" id="t:options/0">
+  <div class="detail-header">
+    <a href="#t:options/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">options()</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L26" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>options() ::
+  <a href="HTTPClient.Adapters.Finch.html#t:options/0">HTTPClient.Adapters.Finch.options</a>() | <a href="HTTPClient.Adapters.HTTPoison.html#t:options/0">HTTPClient.Adapters.HTTPoison.options</a>()</pre>
+      </div>
+
+  </section>
+</section>
+<section class="detail" id="t:response/0">
+  <div class="detail-header">
+    <a href="#t:response/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">response()</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L20" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>response() :: {:ok, <a href="HTTPClient.Response.html#t:t/0">HTTPClient.Response.t</a>()} | {:error, <a href="HTTPClient.Error.html#t:t/0">HTTPClient.Error.t</a>()}</pre>
+      </div>
+
+  </section>
+</section>
+<section class="detail" id="t:url/0">
+  <div class="detail-header">
+    <a href="#t:url/0" class="detail-link" title="Link to this type">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this type</span>
+    </a>
+    <h1 class="signature">url()</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L23" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>url() :: <a href="HTTPClient.Adapters.Finch.html#t:url/0">HTTPClient.Adapters.Finch.url</a>() | <a href="HTTPClient.Adapters.HTTPoison.html#t:url/0">HTTPClient.Adapters.HTTPoison.url</a>()</pre>
+      </div>
+
+  </section>
+</section>
+          </div>
+        </section>
+        <section id="functions" class="details-list">
+          <h1 class="section-heading">
+            <a class="hover-link" href="#functions">
+              <span class="icon-link" aria-hidden="true"></span>
+              <span class="sr-only">Link to this section</span>
+            </a>
+Functions          </h1>
+          <div class="functions-list">
+<section class="detail" id="set/1">
+  <div class="detail-header">
+    <a href="#set/1" class="detail-link" title="Link to this function">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this function</span>
+    </a>
+    <h1 class="signature">set(opts)</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L49" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+
+<p>Sets HTTP client implementation adapter based on the use options.</p><h3 id="set/1-using-options" class="section-heading">
+  <a href="#set/1-using-options" class="hover-link"><span class="icon-link" aria-hidden="true"></span></a>
+  Using options
+</h3>
+<ul><li><code class="inline">:adapter</code> - Implementation of adapter to use. The default value is <code class="inline">:httpoison</code>.</li></ul>  </section>
+</section>
+          </div>
+        </section>
+        <section id="callbacks" class="details-list">
+          <h1 class="section-heading">
+            <a class="hover-link" href="#callbacks">
+              <span class="icon-link" aria-hidden="true"></span>
+              <span class="sr-only">Link to this section</span>
+            </a>
+Callbacks          </h1>
+          <div class="callbacks-list">
+<section class="detail" id="c:delete/3">
+  <div class="detail-header">
+    <a href="#c:delete/3" class="detail-link" title="Link to this callback">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this callback</span>
+    </a>
+    <h1 class="signature">delete(url, headers, options)</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L33" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>delete(<a href="#t:url/0">url</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
+      </div>
+
+  </section>
+</section>
+<section class="detail" id="c:get/3">
+  <div class="detail-header">
+    <a href="#c:get/3" class="detail-link" title="Link to this callback">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this callback</span>
+    </a>
+    <h1 class="signature">get(url, headers, options)</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L29" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>get(<a href="#t:url/0">url</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
+      </div>
+
+  </section>
+</section>
+<section class="detail" id="c:patch/4">
+  <div class="detail-header">
+    <a href="#c:patch/4" class="detail-link" title="Link to this callback">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this callback</span>
+    </a>
+    <h1 class="signature">patch(url, body, headers, options)</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L32" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>patch(<a href="#t:url/0">url</a>(), <a href="#t:body/0">body</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
+      </div>
+
+  </section>
+</section>
+<section class="detail" id="c:post/4">
+  <div class="detail-header">
+    <a href="#c:post/4" class="detail-link" title="Link to this callback">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this callback</span>
+    </a>
+    <h1 class="signature">post(url, body, headers, options)</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L30" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>post(<a href="#t:url/0">url</a>(), <a href="#t:body/0">body</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
+      </div>
+
+  </section>
+</section>
+<section class="detail" id="c:put/4">
+  <div class="detail-header">
+    <a href="#c:put/4" class="detail-link" title="Link to this callback">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this callback</span>
+    </a>
+    <h1 class="signature">put(url, body, headers, options)</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L31" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>put(<a href="#t:url/0">url</a>(), <a href="#t:body/0">body</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
+      </div>
+
+  </section>
+</section>
+<section class="detail" id="c:request/5">
+  <div class="detail-header">
+    <a href="#c:request/5" class="detail-link" title="Link to this callback">
+      <span class="icon-link" aria-hidden="true"></span>
+      <span class="sr-only">Link to this callback</span>
+    </a>
+    <h1 class="signature">request(method, url, body, headers, options)</h1>
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L28" class="view-source" rel="help" title="View Source">
+       <span class="icon-code" aria-hidden="true"></span>
+       <span class="sr-only">View Source</span>
+     </a>
+  </div>
+
+  <section class="docstring">
+      <h2>Specs</h2>
+      <div class="specs">
+          <pre>request(<a href="#t:method/0">method</a>(), <a href="#t:url/0">url</a>(), <a href="#t:body/0">body</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
+      </div>
+
+  </section>
+</section>
+          </div>
+        </section>
+      <footer class="footer">
+        <p>
+          <span class="line">
+            Built using
+            <a href="https://github.com/elixir-lang/ex_doc" title="ExDoc" target="_blank" rel="help noopener">ExDoc</a> (v0.22.1),
+          </span>
+          <span class="line">
+            designed by
+            <a href="https://twitter.com/dignifiedquire" target="_blank" rel="noopener" title="@dignifiedquire">Friedel Ziegelmayer</a>.
+          </span>
+        </p>
+        <p>
+          <button class="line footer-button display-shortcuts-help">
+            Display keyboard shortcuts
+          </button>
+          <button class="line footer-button night-mode-toggle">
+            Toggle night mode
+          </button>
+          <button class="line footer-button display-quick-switch">
+            Go to a HexDocs package
+          </button>
+          <button class="line footer-button tooltips-toggle">
+            <span class="tooltips-option-disable">Disable tooltips</span>
+            <span class="tooltips-option-enable">Enable tooltips</span>
+          </button>
+        </p>
+      </footer>
+    </div>
+  </div>
+</section>
+</div>
+  </body>
+</html>
