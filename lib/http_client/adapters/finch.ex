@@ -68,9 +68,9 @@ defmodule HTTPClient.Adapters.Finch do
     end
   end
 
-  def build_request_url(url, nil), do: url
+  defp build_request_url(url, nil), do: url
 
-  def build_request_url(url, params) do
+  defp build_request_url(url, params) do
     cond do
       Enum.count(params) === 0 -> url
       URI.parse(url).query -> url <> "&" <> URI.encode_query(params)
