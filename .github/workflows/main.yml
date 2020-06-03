@@ -1,0 +1,46 @@
+name: Test
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - '*'
+jobs:
+  build:
+    name: Elixir ${{matrix.elixir}} / OTP ${{matrix.otp}}
+    strategy:
+      matrix:
+        otp: [22.x]
+        elixir: [1.7.x, 1.9.x]
+    env:
+      MIX_ENV: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{matrix.otp}} 
+          elixir-version: ${{matrix.elixir}}
+
+      - uses: actions/cache@v1
+        id: deps_cache
+        with:
+          path: deps
+          key: dependencies-v1-${{ hashFiles('mix.lock') }}
+
+      - uses: actions/cache@v1
+        id: build_cache
+        with:
+          path: _build
+          key: build-v1-${{ hashFiles('mix.lock') }}
+
+      - run: mix deps.get
+        if: steps.deps_cache.outputs.cache-hit != 'true'
+
+      - run: mix deps.compile
+        if: steps.build_cache.outputs.cache-hit != 'true'
+
+      - run: mix compile
+      - run: mix test
+      - run: mix format mix.exs "config/*.{ex,exs}" "apps/**/*.{ex,exs}" --check-formatted
