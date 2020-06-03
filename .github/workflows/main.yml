@@ -27,13 +27,17 @@ jobs:
         id: deps_cache
         with:
           path: deps
-          key: dependencies-v1-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-
 
       - uses: actions/cache@v1
         id: build_cache
         with:
           path: _build
-          key: build-v1-${{ hashFiles('mix.lock') }}
+          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-
 
       - run: mix deps.get
         if: steps.deps_cache.outputs.cache-hit != 'true'
