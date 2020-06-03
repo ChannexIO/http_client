@@ -11,6 +11,7 @@ defmodule HTTPClient.MixProject do
       version: @version,
       elixir: "~> 1.7",
       description: "Facade for HTTP client.",
+      docs: docs(),
       start_permanent: Mix.env() == :prod,
       name: @name,
       source_url: @repo_url,
@@ -31,7 +32,16 @@ defmodule HTTPClient.MixProject do
       {:httpoison, "~> 1.6"},
       {:finch, "~> 0.2"},
       {:telemetry, "~> 0.4"},
-      {:bypass, "~> 1.0", only: :test}
+      {:bypass, "~> 1.0", only: :test},
+      {:ex_doc, "~> 0.22", only: :dev, runtime: false}
+    ]
+  end
+
+  def docs do
+    [
+      source_ref: "v#{@version}",
+      source_url: @repo_url,
+      main: @name
     ]
   end
 end
