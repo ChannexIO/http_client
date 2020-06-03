@@ -5,5 +5,9 @@ defmodule HTTPClient.Response do
 
   defstruct [:status, body: "", headers: []]
 
-  @type t :: %__MODULE__{status: Mint.Types.status(), body: binary(), headers: Mint.Types.headers()}
+  @type t :: %__MODULE__{
+          status: Mint.Types.status(),
+          body: binary(),
+          headers: Mint.Types.headers()
+        }
 end
