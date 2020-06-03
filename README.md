@@ -9,11 +9,11 @@ provided by supported HTTP clients.
 
 ## Usage
 
-For example, to build API clients around HTTClient:
+For example, to build API clients around HTTPClient:
 
 ```elixir
 defmodule GitHub do
-  use HTTClient
+  use HTTPClient
   
   @endpoint "https://api.github.com"
     
@@ -31,7 +31,7 @@ This way, all requests done through the `GitHub` module will be done to the GitH
 By default requests done through HTTPoison client, to use Finch, for example, 
 add `use` options:
     
-    use HTTClient, adapter: :finch
+    use HTTPClient, adapter: :finch
 
 ## Telemetry
 
@@ -59,7 +59,7 @@ HTTPClient uses Telemetry to provide the following events:
     * `:status_code` - This value is optional. The response status code.
     * `:error` - This value is optional. It includes any errors that occured while making the request.
 
-See the `HTTClient.Telemetry` module for details on specific events.
+See the `HTTPClient.Telemetry` module for details on specific events.
 
 <!-- MDOC !-->
 
