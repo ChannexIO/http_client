@@ -17,20 +17,84 @@ defmodule HTTPClient.Adapter do
 
   alias HTTPClient.Adapters.{Finch, HTTPoison}
 
+  @typedoc """
+  A response to a request.
+
+  Unified for all adapter implementations.
+  """
   @type response() :: {:ok, HTTPClient.Response.t()} | {:error, HTTPClient.Error.t()}
 
+  @typedoc "An HTTP request method represented as an `atom()` or a `String.t()`."
   @type method() :: Finch.method() | HTTPoison.method()
+
+  @typedoc "A Uniform Resource Locator, the address of a resource on the Web."
   @type url() :: Finch.url() | HTTPoison.url()
-  @type headers() :: Finch.headers() | HTTPoison.headers()
+
+  @typedoc "A body associated with a request."
   @type body() :: Finch.body() | HTTPoison.body()
+
+  @typedoc """
+  HTTP headers.
+
+  Headers are sent and received as lists of two-element tuples containing two strings,
+  the header name and header value.
+  """
+  @type headers() :: Finch.headers() | HTTPoison.headers()
+
+  @typedoc "Keyword list of options supported by adapter implementation."
   @type options() :: Finch.options() | HTTPoison.options()
 
-  @callback request(method(), url(), body(), headers(), options()) :: response()
+  @doc """
+  Issues a GET request to the given url.
+
+  See `c:request/5` for more detailed information.
+  """
   @callback get(url(), headers(), options()) :: response()
+
+  @doc """
+  Issues a POST request to the given url.
+
+  See `c:request/5` for more detailed information.
+  """
   @callback post(url(), body(), headers(), options()) :: response()
+
+  @doc """
+  Issues a PUT request to the given url.
+
+  See `c:request/5` for more detailed information.
+  """
   @callback put(url(), body(), headers(), options()) :: response()
+
+  @doc """
+  Issues a PATCH request to the given url.
+
+  See `c:request/5` for more detailed information.
+  """
   @callback patch(url(), body(), headers(), options()) :: response()
+
+  @doc """
+  Issues a DELETE request to the given url.
+
+  See `c:request/5` for more detailed information.
+  """
   @callback delete(url(), headers(), options()) :: response()
+
+  @doc """
+  Issues an HTTP request with the given method to the given url.
+
+  This function is usually used indirectly by `get/3`, `post/4`, `put/4`, etc
+
+  Args:
+    * `method` - HTTP method as an atom (`:get`, `:post`, `:put`, `:delete`, etc.)
+    * `url` - target url as a binary string
+    * `body` - request body
+    * `headers` - HTTP headers as an keyword (e.g., `[{"Accept", "application/json"}]`)
+    * `options` - Keyword list of options
+
+  Returns `{:ok, HTTPClient.Response.t()}` if the request is successful,
+  `{:error, HTTPClient.Error.t()}` otherwise.
+  """
+  @callback request(method(), url(), body(), headers(), options()) :: response()
 
   @config_schema [
     adapter: [

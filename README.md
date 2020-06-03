@@ -1,6 +1,6 @@
-<!-- MDOC !-->
-
 # HTTPClient
+
+<!-- MDOC !-->
 
 Facade for HTTP client.
 
