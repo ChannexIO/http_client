@@ -91,31 +91,37 @@ list of functions:</p><ul><li><a href="#c:request/5"><code class="inline">reques
   <div class="summary-signature">
     <a href="#t:body/0">body()</a>
   </div>
+    <div class="summary-synopsis"><p>A body associated with a request.</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#t:headers/0">headers()</a>
   </div>
+    <div class="summary-synopsis"><p>HTTP headers.</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#t:method/0">method()</a>
   </div>
+    <div class="summary-synopsis"><p>An HTTP request method represented as an <code class="inline">atom()</code> or a <code class="inline">String.t()</code>.</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#t:options/0">options()</a>
   </div>
+    <div class="summary-synopsis"><p>Keyword list of options supported by adapter implementation.</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#t:response/0">response()</a>
   </div>
+    <div class="summary-synopsis"><p>A response to a request.</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#t:url/0">url()</a>
   </div>
+    <div class="summary-synopsis"><p>A Uniform Resource Locator, the address of a resource on the Web.</p></div>
 </div>
   </div>
   <div class="summary-functions summary">
@@ -137,31 +143,37 @@ list of functions:</p><ul><li><a href="#c:request/5"><code class="inline">reques
   <div class="summary-signature">
     <a href="#c:delete/3">delete(url, headers, options)</a>
   </div>
+    <div class="summary-synopsis"><p>Issues a DELETE request to the given url.</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#c:get/3">get(url, headers, options)</a>
   </div>
+    <div class="summary-synopsis"><p>Issues a GET request to the given url.</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#c:patch/4">patch(url, body, headers, options)</a>
   </div>
+    <div class="summary-synopsis"><p>Issues a PATCH request to the given url.</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#c:post/4">post(url, body, headers, options)</a>
   </div>
+    <div class="summary-synopsis"><p>Issues a POST request to the given url.</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#c:put/4">put(url, body, headers, options)</a>
   </div>
+    <div class="summary-synopsis"><p>Issues a PUT request to the given url.</p></div>
 </div>
 <div class="summary-row">
   <div class="summary-signature">
     <a href="#c:request/5">request(method, url, body, headers, options)</a>
   </div>
+    <div class="summary-synopsis"><p>Issues an HTTP request with the given method to the given url.</p></div>
 </div>
   </div>
         </section>
@@ -181,7 +193,7 @@ Types          </h1>
       <span class="sr-only">Link to this type</span>
     </a>
     <h1 class="signature">body()</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L25" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L34" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -194,7 +206,7 @@ Types          </h1>
   <a href="HTTPClient.Adapters.Finch.html#t:body/0">HTTPClient.Adapters.Finch.body</a>() | <a href="HTTPClient.Adapters.HTTPoison.html#t:body/0">HTTPClient.Adapters.HTTPoison.body</a>()</pre>
       </div>
 
-  </section>
+<p>A body associated with a request.</p>  </section>
 </section>
 <section class="detail" id="t:headers/0">
   <div class="detail-header">
@@ -203,7 +215,7 @@ Types          </h1>
       <span class="sr-only">Link to this type</span>
     </a>
     <h1 class="signature">headers()</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L24" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L42" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -216,7 +228,8 @@ Types          </h1>
   <a href="HTTPClient.Adapters.Finch.html#t:headers/0">HTTPClient.Adapters.Finch.headers</a>() | <a href="HTTPClient.Adapters.HTTPoison.html#t:headers/0">HTTPClient.Adapters.HTTPoison.headers</a>()</pre>
       </div>
 
-  </section>
+<p>HTTP headers.</p><p>Headers are sent and received as lists of two-element tuples containing two strings,
+the header name and header value.</p>  </section>
 </section>
 <section class="detail" id="t:method/0">
   <div class="detail-header">
@@ -225,7 +238,7 @@ Types          </h1>
       <span class="sr-only">Link to this type</span>
     </a>
     <h1 class="signature">method()</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L22" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L28" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -238,7 +251,7 @@ Types          </h1>
   <a href="HTTPClient.Adapters.Finch.html#t:method/0">HTTPClient.Adapters.Finch.method</a>() | <a href="HTTPClient.Adapters.HTTPoison.html#t:method/0">HTTPClient.Adapters.HTTPoison.method</a>()</pre>
       </div>
 
-  </section>
+<p>An HTTP request method represented as an <code class="inline">atom()</code> or a <code class="inline">String.t()</code>.</p>  </section>
 </section>
 <section class="detail" id="t:options/0">
   <div class="detail-header">
@@ -247,7 +260,7 @@ Types          </h1>
       <span class="sr-only">Link to this type</span>
     </a>
     <h1 class="signature">options()</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L26" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L45" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -260,7 +273,7 @@ Types          </h1>
   <a href="HTTPClient.Adapters.Finch.html#t:options/0">HTTPClient.Adapters.Finch.options</a>() | <a href="HTTPClient.Adapters.HTTPoison.html#t:options/0">HTTPClient.Adapters.HTTPoison.options</a>()</pre>
       </div>
 
-  </section>
+<p>Keyword list of options supported by adapter implementation.</p>  </section>
 </section>
 <section class="detail" id="t:response/0">
   <div class="detail-header">
@@ -269,7 +282,7 @@ Types          </h1>
       <span class="sr-only">Link to this type</span>
     </a>
     <h1 class="signature">response()</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L20" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L25" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -281,7 +294,7 @@ Types          </h1>
           <pre>response() :: {:ok, <a href="HTTPClient.Response.html#t:t/0">HTTPClient.Response.t</a>()} | {:error, <a href="HTTPClient.Error.html#t:t/0">HTTPClient.Error.t</a>()}</pre>
       </div>
 
-  </section>
+<p>A response to a request.</p><p>Unified for all adapter implementations.</p>  </section>
 </section>
 <section class="detail" id="t:url/0">
   <div class="detail-header">
@@ -290,7 +303,7 @@ Types          </h1>
       <span class="sr-only">Link to this type</span>
     </a>
     <h1 class="signature">url()</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L23" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L31" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -302,7 +315,7 @@ Types          </h1>
           <pre>url() :: <a href="HTTPClient.Adapters.Finch.html#t:url/0">HTTPClient.Adapters.Finch.url</a>() | <a href="HTTPClient.Adapters.HTTPoison.html#t:url/0">HTTPClient.Adapters.HTTPoison.url</a>()</pre>
       </div>
 
-  </section>
+<p>A Uniform Resource Locator, the address of a resource on the Web.</p>  </section>
 </section>
           </div>
         </section>
@@ -321,7 +334,7 @@ Functions          </h1>
       <span class="sr-only">Link to this function</span>
     </a>
     <h1 class="signature">set(opts)</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L49" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L113" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -352,7 +365,7 @@ Callbacks          </h1>
       <span class="sr-only">Link to this callback</span>
     </a>
     <h1 class="signature">delete(url, headers, options)</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L33" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L80" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -364,7 +377,7 @@ Callbacks          </h1>
           <pre>delete(<a href="#t:url/0">url</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
       </div>
 
-  </section>
+<p>Issues a DELETE request to the given url.</p><p>See <a href="#c:request/5"><code class="inline">request/5</code></a> for more detailed information.</p>  </section>
 </section>
 <section class="detail" id="c:get/3">
   <div class="detail-header">
@@ -373,7 +386,7 @@ Callbacks          </h1>
       <span class="sr-only">Link to this callback</span>
     </a>
     <h1 class="signature">get(url, headers, options)</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L29" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L52" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -385,7 +398,7 @@ Callbacks          </h1>
           <pre>get(<a href="#t:url/0">url</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
       </div>
 
-  </section>
+<p>Issues a GET request to the given url.</p><p>See <a href="#c:request/5"><code class="inline">request/5</code></a> for more detailed information.</p>  </section>
 </section>
 <section class="detail" id="c:patch/4">
   <div class="detail-header">
@@ -394,7 +407,7 @@ Callbacks          </h1>
       <span class="sr-only">Link to this callback</span>
     </a>
     <h1 class="signature">patch(url, body, headers, options)</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L32" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L73" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -406,7 +419,7 @@ Callbacks          </h1>
           <pre>patch(<a href="#t:url/0">url</a>(), <a href="#t:body/0">body</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
       </div>
 
-  </section>
+<p>Issues a PATCH request to the given url.</p><p>See <a href="#c:request/5"><code class="inline">request/5</code></a> for more detailed information.</p>  </section>
 </section>
 <section class="detail" id="c:post/4">
   <div class="detail-header">
@@ -415,7 +428,7 @@ Callbacks          </h1>
       <span class="sr-only">Link to this callback</span>
     </a>
     <h1 class="signature">post(url, body, headers, options)</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L30" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L59" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -427,7 +440,7 @@ Callbacks          </h1>
           <pre>post(<a href="#t:url/0">url</a>(), <a href="#t:body/0">body</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
       </div>
 
-  </section>
+<p>Issues a POST request to the given url.</p><p>See <a href="#c:request/5"><code class="inline">request/5</code></a> for more detailed information.</p>  </section>
 </section>
 <section class="detail" id="c:put/4">
   <div class="detail-header">
@@ -436,7 +449,7 @@ Callbacks          </h1>
       <span class="sr-only">Link to this callback</span>
     </a>
     <h1 class="signature">put(url, body, headers, options)</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L31" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L66" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -448,7 +461,7 @@ Callbacks          </h1>
           <pre>put(<a href="#t:url/0">url</a>(), <a href="#t:body/0">body</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
       </div>
 
-  </section>
+<p>Issues a PUT request to the given url.</p><p>See <a href="#c:request/5"><code class="inline">request/5</code></a> for more detailed information.</p>  </section>
 </section>
 <section class="detail" id="c:request/5">
   <div class="detail-header">
@@ -457,7 +470,7 @@ Callbacks          </h1>
       <span class="sr-only">Link to this callback</span>
     </a>
     <h1 class="signature">request(method, url, body, headers, options)</h1>
-      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L28" class="view-source" rel="help" title="View Source">
+      <a href="https://github.com/ChannexIO/http_client/blob/v0.1.0/lib/http_client/adapter.ex#L97" class="view-source" rel="help" title="View Source">
        <span class="icon-code" aria-hidden="true"></span>
        <span class="sr-only">View Source</span>
      </a>
@@ -469,7 +482,8 @@ Callbacks          </h1>
           <pre>request(<a href="#t:method/0">method</a>(), <a href="#t:url/0">url</a>(), <a href="#t:body/0">body</a>(), <a href="#t:headers/0">headers</a>(), <a href="#t:options/0">options</a>()) :: <a href="#t:response/0">response</a>()</pre>
       </div>
 
-  </section>
+<p>Issues an HTTP request with the given method to the given url.</p><p>This function is usually used indirectly by <code class="inline">get/3</code>, <code class="inline">post/4</code>, <code class="inline">put/4</code>, etc</p><p>Args:</p><ul><li><code class="inline">method</code> - HTTP method as an atom (<code class="inline">:get</code>, <code class="inline">:post</code>, <code class="inline">:put</code>, <code class="inline">:delete</code>, etc.)</li><li><code class="inline">url</code> - target url as a binary string</li><li><code class="inline">body</code> - request body</li><li><code class="inline">headers</code> - HTTP headers as an keyword (e.g., <code class="inline">[{&quot;Accept&quot;, &quot;application/json&quot;}]</code>)</li><li><code class="inline">options</code> - Keyword list of options</li></ul><p>Returns <code class="inline">{:ok, HTTPClient.Response.t()}</code> if the request is successful,
+<code class="inline">{:error, HTTPClient.Error.t()}</code> otherwise.</p>  </section>
 </section>
           </div>
         </section>
