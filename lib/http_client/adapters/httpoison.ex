@@ -3,7 +3,7 @@ defmodule HTTPClient.Adapters.HTTPoison do
   Implementation of `HTTPClient.Adapter` behaviour using HTTPoison HTTP client.
   """
 
-  alias HTTPClient.{Error, Response, Telemetry}
+  alias HTTPClient.{Error, Response}
 
   @type method() :: HTTPoison.Request.method()
   @type url() :: HTTPoison.Request.url()
@@ -46,23 +46,11 @@ defmodule HTTPClient.Adapters.HTTPoison do
   defp perform_request(method, url, headers, body, options) do
     options = add_basic_auth_option(options, options[:basic_auth])
 
-    metadata = %{
-      method: method,
-      url: url,
-      options: options
-    }
-
-    start_time = Telemetry.start(:request, metadata)
-
     case HTTPoison.request(method, url, body, headers, options) do
       {:ok, %{status_code: status, body: body, headers: headers}} ->
-        metadata = Map.put(metadata, :status_code, status)
-        Telemetry.stop(:request, start_time, metadata)
         {:ok, %Response{status: status, body: body, headers: headers}}
 
       {:error, error} ->
-        metadata = Map.put(metadata, :error, error)
-        Telemetry.stop(:request, start_time, metadata)
         {:error, %Error{reason: error.reason}}
     end
   end

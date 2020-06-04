@@ -19,7 +19,7 @@ defmodule HTTPClient do
       """
       @spec get(Adapter.url(), Adapter.headers(), Adapter.options()) :: Adapter.response()
       def get(url, headers, options) do
-        @adapter.get(url, headers, options)
+        Adapter.get(@adapter, url, headers, options)
       end
 
       @doc """
@@ -30,7 +30,7 @@ defmodule HTTPClient do
       @spec post(Adapter.url(), Adapter.body(), Adapter.headers(), Adapter.options()) ::
               Adapter.response()
       def post(url, body, headers, options) do
-        @adapter.post(url, body, headers, options)
+        Adapter.post(@adapter, url, body, headers, options)
       end
 
       @doc """
@@ -41,7 +41,7 @@ defmodule HTTPClient do
       @spec put(Adapter.url(), Adapter.body(), Adapter.headers(), Adapter.options()) ::
               Adapter.response()
       def put(url, body, headers, options) do
-        @adapter.put(url, body, headers, options)
+        Adapter.put(@adapter, url, body, headers, options)
       end
 
       @doc """
@@ -52,7 +52,7 @@ defmodule HTTPClient do
       @spec patch(Adapter.url(), Adapter.body(), Adapter.headers(), Adapter.options()) ::
               Adapter.response()
       def patch(url, body, headers, options) do
-        @adapter.patch(url, body, headers, options)
+        Adapter.patch(@adapter, url, body, headers, options)
       end
 
       @doc """
@@ -62,7 +62,7 @@ defmodule HTTPClient do
       """
       @spec delete(Adapter.url(), Adapter.headers(), Adapter.options()) :: Adapter.response()
       def delete(url, headers, options) do
-        @adapter.delete(url, headers, options)
+        Adapter.delete(@adapter, url, headers, options)
       end
 
       @doc """
@@ -88,7 +88,7 @@ defmodule HTTPClient do
               Adapter.options()
             ) :: Adapter.response()
       def request(method, url, body, headers, options) do
-        @adapter.request(method, url, body, headers, options)
+        Adapter.request(@adapter, method, url, body, headers, options)
       end
     end
   end

@@ -16,6 +16,7 @@ defmodule HTTPClient.Adapter do
   """
 
   alias HTTPClient.Adapters.{Finch, HTTPoison}
+  alias HTTPClient.{Error, Response, Telemetry}
 
   @typedoc """
   A response to a request.
@@ -116,6 +117,53 @@ defmodule HTTPClient.Adapter do
     else
       {:error, reason} ->
         raise ArgumentError, "got invalid configuration for HTTPClient #{reason}"
+    end
+  end
+
+  @doc false
+  def request(adapter, method, url, body, headers, options) do
+    perform(adapter, :request, [method, url, body, headers, options])
+  end
+
+  @doc false
+  def get(adapter, url, headers, options) do
+    perform(adapter, :get, [url, headers, options])
+  end
+
+  @doc false
+  def post(adapter, url, body, headers, options) do
+    perform(adapter, :post, [url, body, headers, options])
+  end
+
+  @doc false
+  def put(adapter, url, body, headers, options) do
+    perform(adapter, :put, [url, body, headers, options])
+  end
+
+  @doc false
+  def patch(adapter, url, body, headers, options) do
+    perform(adapter, :patch, [url, body, headers, options])
+  end
+
+  @doc false
+  def delete(adapter, url, headers, options) do
+    perform(adapter, :delete, [url, headers, options])
+  end
+
+  defp perform(adapter, method, args) do
+    metadata = %{adapter: adapter, args: args, method: method}
+    start_time = Telemetry.start(:request, metadata)
+
+    case apply(adapter, method, args) do
+      {:ok, %Response{status: status}} = response ->
+        metadata = Map.put(metadata, :status_code, status)
+        Telemetry.stop(:request, start_time, metadata)
+        response
+
+      {:error, %Error{reason: reason}} = error_response ->
+        metadata = Map.put(metadata, :error, reason)
+        Telemetry.stop(:request, start_time, metadata)
+        error_response
     end
   end
 

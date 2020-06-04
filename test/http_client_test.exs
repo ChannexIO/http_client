@@ -107,28 +107,28 @@ defmodule HTTPClientTest do
         case event do
           [:http_client, :request, :start] ->
             assert is_integer(measurements.system_time)
-            assert meta.method == :get
+            assert meta.adapter == HTTPClient.Adapters.HTTPoison
 
-            assert meta.options == [
-                     hackney: [basic_auth: {"username", "password"}],
-                     params: %{a: 1, b: 2},
-                     basic_auth: {"username", "password"}
+            assert meta.args == [
+                     endpoint(bypass),
+                     [{"content-type", "application/json"}],
+                     [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
                    ]
 
-            assert meta.url == endpoint(bypass)
+            assert meta.method == :get
             send(parent, {ref, :start})
 
           [:http_client, :request, :stop] ->
             assert is_integer(measurements.duration)
-            assert meta.method == :get
+            assert meta.adapter == HTTPClient.Adapters.HTTPoison
 
-            assert meta.options == [
-                     hackney: [basic_auth: {"username", "password"}],
-                     params: %{a: 1, b: 2},
-                     basic_auth: {"username", "password"}
+            assert meta.args == [
+                     endpoint(bypass),
+                     [{"content-type", "application/json"}],
+                     [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
                    ]
 
-            assert meta.url == endpoint(bypass)
+            assert meta.method == :get
             assert meta.status_code == 200
             send(parent, {ref, :stop})
 
