@@ -12,9 +12,9 @@ defmodule HTTPClient.Telemetry do
     * `:system_time` - The system time
 
     #### Metadata:
+    * `:adapter` - The name of adapter impelementation.
+    * `:args` - The arguments passed in the request (url, headers, etc.).
     * `:method` - The method used in the request.
-    * `:url` - The url address.
-    * `:options` - The request options.
 
   * `[:http_client, :request, :stop]` - Executed after a request is finished.
 
@@ -22,9 +22,9 @@ defmodule HTTPClient.Telemetry do
     * `:duration` - Duration to make the request.
 
     #### Metadata:
+    * `:adapter` - The name of adapter impelementation.
+    * `:args` - The arguments passed in the request (url, headers, etc.).
     * `:method` - The method used in the request.
-    * `:url` - The url address.
-    * `:options` - The request options.
     * `:status_code` - This value is optional. The response status code.
     * `:error` - This value is optional. It includes any errors that occured while making the request.
   """
