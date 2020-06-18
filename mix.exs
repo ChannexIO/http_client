@@ -29,10 +29,10 @@ defmodule HTTPClient.MixProject do
   defp deps do
     [
       {:nimble_options, "~> 0.2"},
-      {:httpoison, "~> 1.6"},
+      {:httpoison, "~> 1.7"},
       {:finch, "~> 0.2"},
       {:telemetry, "~> 0.4"},
-      {:bypass, "~> 1.0", only: :test},
+      {:bypass, github: "PSPDFKit-labs/bypass", only: :test},
       {:ex_doc, "~> 0.22", only: :dev, runtime: false}
     ]
   end
