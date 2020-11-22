@@ -1,50 +1,51 @@
-name: Test
-on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches:
-      - '*'
+name: CI
+
+on: [push, pull_request]
+
 jobs:
-  build:
-    name: Elixir ${{matrix.elixir}} / OTP ${{matrix.otp}}
-    strategy:
-      matrix:
-        otp: [22.x]
-        elixir: [1.7.x, 1.9.x]
-    env:
-      MIX_ENV: test
+  format:
+    name: Format and compile with warnings as errors
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-elixir@v1
+      - uses: actions/checkout@v1
+
+      - name: Install OTP and Elixir
+        uses: actions/setup-elixir@v1
         with:
-          otp-version: ${{matrix.otp}} 
+          otp-version: 23.0
+          elixir-version: 1.11.2
+
+      - name: Install dependencies
+        run: mix deps.get
+
+      - name: Run "mix format"
+        run: mix format --check-formatted
+
+      - name: Compile with --warnings-as-errors
+        run: mix compile --warnings-as-errors
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - erlang: 23.0
+            elixir: 1.11.2
+          - erlang: 22.3
+            elixir: 1.9.4
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Install OTP and Elixir
+        uses: actions/setup-elixir@v1
+        with:
+          otp-version: ${{matrix.erlang}}
           elixir-version: ${{matrix.elixir}}
 
-      - uses: actions/cache@v1
-        id: deps_cache
-        with:
-          path: deps
-          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-mix-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-
+      - name: Install dependencies
+        run: mix deps.get
 
-      - uses: actions/cache@v1
-        id: build_cache
-        with:
-          path: _build
-          key: ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-build-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.otp }}-${{ matrix.elixir }}-
-
-      - run: mix deps.get
-        if: steps.deps_cache.outputs.cache-hit != 'true'
-
-      - run: mix deps.compile
-        if: steps.build_cache.outputs.cache-hit != 'true'
-
-      - run: mix compile
-      - run: mix test
-      - run: mix format mix.exs "config/*.{ex,exs}" "apps/**/*.{ex,exs}" --check-formatted
+      - name: Run tests
+        run: mix test --trace
