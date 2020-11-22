@@ -44,10 +44,17 @@ defmodule HTTPClient.Adapters.Finch do
   end
 
   defp perform_request(method, url, headers, body, options) do
-    url = build_request_url(url, options[:params])
-    headers = add_basic_auth_header(headers, options[:basic_auth])
+    {params, options} = Keyword.pop(options, :params)
+    {basic_auth, options} = Keyword.pop(options, :basic_auth)
 
-    case Finch.request(FinchHTTPClient, method, url, headers, body, options) do
+    url = build_request_url(url, params)
+    headers = add_basic_auth_header(headers, basic_auth)
+    options = prepare_options(options)
+
+    method
+    |> Finch.build(url, headers, body)
+    |> Finch.request(FinchHTTPClient, options)
+    |> case do
       {:ok, %{status: status, body: body, headers: headers}} ->
         {:ok, %Response{status: status, body: body, headers: headers, request_url: url}}
 
@@ -72,4 +79,12 @@ defmodule HTTPClient.Adapters.Finch do
   end
 
   defp add_basic_auth_header(headers, _basic_auth), do: headers
+
+  defp prepare_options(options) do
+    Enum.map(options, &normalize_option/1)
+  end
+
+  defp normalize_option({:timeout, value}), do: {:pool_timeout, value}
+  defp normalize_option({:recv_timeout, value}), do: {:receive_timeout, value}
+  defp normalize_option({key, value}), do: {key, value}
 end
