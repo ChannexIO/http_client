@@ -17,6 +17,7 @@ defmodule HTTPClient.Adapter do
 
   alias HTTPClient.Adapters.{Finch, HTTPoison}
   alias HTTPClient.{Error, Response, Telemetry}
+  alias NimbleOptions.ValidationError
 
   @typedoc """
   A response to a request.
@@ -99,7 +100,7 @@ defmodule HTTPClient.Adapter do
 
   @config_schema [
     adapter: [
-      type: {:one_of, [:finch, :httpoison]},
+      type: {:in, [:finch, :httpoison]},
       doc: "Implementation of adapter to use.",
       default: :httpoison
     ]
@@ -113,10 +114,10 @@ defmodule HTTPClient.Adapter do
   """
   def set(opts) do
     with {:ok, valid} <- NimbleOptions.validate(opts, @config_schema) do
-      choose_adapter(valid[:adapter])
+      adapter_mod(valid[:adapter])
     else
-      {:error, reason} ->
-        raise ArgumentError, "got invalid configuration for HTTPClient #{reason}"
+      {:error, %ValidationError{message: message}} ->
+        raise ArgumentError, "got invalid configuration for HTTPClient #{message}"
     end
   end
 
@@ -167,6 +168,6 @@ defmodule HTTPClient.Adapter do
     end
   end
 
-  defp choose_adapter(:finch), do: HTTPClient.Adapters.Finch
-  defp choose_adapter(:httpoison), do: HTTPClient.Adapters.HTTPoison
+  defp adapter_mod(:finch), do: HTTPClient.Adapters.Finch
+  defp adapter_mod(:httpoison), do: HTTPClient.Adapters.HTTPoison
 end
