@@ -47,8 +47,8 @@ defmodule HTTPClient.Adapters.HTTPoison do
     options = add_basic_auth_option(options, options[:basic_auth])
 
     case HTTPoison.request(method, url, body, headers, options) do
-      {:ok, %{status_code: status, body: body, headers: headers}} ->
-        {:ok, %Response{status: status, body: body, headers: headers}}
+      {:ok, %{status_code: status, body: body, headers: headers, request: request}} ->
+        {:ok, %Response{status: status, body: body, headers: headers, request_url: request.url}}
 
       {:error, error} ->
         {:error, %Error{reason: error.reason}}

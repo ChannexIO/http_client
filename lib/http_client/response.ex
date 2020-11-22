@@ -3,11 +3,12 @@ defmodule HTTPClient.Response do
   A response to a request.
   """
 
-  defstruct [:status, body: "", headers: []]
+  defstruct [:request_url, :status, body: "", headers: []]
 
   @type t :: %__MODULE__{
-          status: Mint.Types.status(),
           body: binary(),
-          headers: Mint.Types.headers()
+          headers: keyword(),
+          request_url: binary(),
+          status: non_neg_integer()
         }
 end
