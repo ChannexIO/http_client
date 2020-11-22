@@ -49,7 +49,7 @@ defmodule HTTPClient.Adapters.Finch do
 
     case Finch.request(FinchHTTPClient, method, url, headers, body, options) do
       {:ok, %{status: status, body: body, headers: headers}} ->
-        {:ok, %Response{status: status, body: body, headers: headers}}
+        {:ok, %Response{status: status, body: body, headers: headers, request_url: url}}
 
       {:error, error} ->
         {:error, %Error{reason: error.reason}}

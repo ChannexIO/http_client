@@ -28,7 +28,7 @@ defmodule HTTPClientTest do
       headers = [{"Content-Type", "text/xml"}]
       options = [params: %{a: 1}]
 
-      assert {ok, %Response{body: "OK", status: 200}} =
+      assert {:ok, %Response{body: "OK", status: 200}} =
                TestFinchRequest.get(endpoint(bypass), headers, options)
     end
 
@@ -60,7 +60,7 @@ defmodule HTTPClientTest do
       headers = [{"content-type", "application/json"}]
       options = [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
 
-      assert {ok, %Response{status: 200, body: ^response_body}} =
+      assert {:ok, %Response{status: 200, body: ^response_body}} =
                TestFinchRequest.post(endpoint(bypass), req_body, headers, options)
     end
 
@@ -76,7 +76,7 @@ defmodule HTTPClientTest do
         Plug.Conn.send_resp(conn, 200, "OK")
       end)
 
-      assert {ok, %Response{status: 200, body: "OK"}} =
+      assert {:ok, %Response{status: 200, body: "OK"}} =
                TestFinchRequest.request(:delete, endpoint(bypass), "", [], [])
     end
 
@@ -155,6 +155,31 @@ defmodule HTTPClientTest do
       assert_receive {^ref, :stop}
 
       :telemetry.detach(to_string(test_name))
+    end
+  end
+
+  describe "response" do
+    test "same for all adapters", %{bypass: bypass} do
+      Bypass.expect(bypass, "POST", "/", fn conn ->
+        Plug.Conn.send_resp(conn, 200, "OK")
+      end)
+
+      headers = [{"content-type", "application/json"}]
+      options = [params: %{a: 1, b: 2}]
+      url = endpoint(bypass)
+
+      assert {:ok, finch_response} = TestFinchRequest.post(url, "{}", headers, options)
+      assert {:ok, default_response} = TestDefaultRequest.post(url, "{}", headers, options)
+      assert finch_response == default_response
+
+      assert %Response{
+               body: "OK",
+               headers: _headers,
+               request_url: request_url,
+               status: 200
+             } = default_response
+
+      assert request_url == url <> "?a=1&b=2"
     end
   end
 
