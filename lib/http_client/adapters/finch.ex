@@ -5,10 +5,10 @@ defmodule HTTPClient.Adapters.Finch do
 
   alias HTTPClient.{Error, Response}
 
-  @type method() :: Finch.http_method()
-  @type url() :: Finch.url()
-  @type headers() :: Mint.Types.headers()
-  @type body() :: Finch.body()
+  @type method() :: Finch.Request.method()
+  @type url() :: Finch.Request.url()
+  @type headers() :: Finch.Request.headers()
+  @type body() :: Finch.Request.body()
   @type options() :: keyword()
 
   @behaviour HTTPClient.Adapter
