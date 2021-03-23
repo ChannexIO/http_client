@@ -29,11 +29,11 @@ defmodule HTTPClient.MixProject do
   defp deps do
     [
       {:nimble_options, "~> 0.3"},
-      {:httpoison, "~> 1.7"},
-      {:finch, "~> 0.5"},
+      {:httpoison, "~> 1.8"},
+      {:finch, "~> 0.6"},
       {:telemetry, "~> 0.4"},
       {:bypass, "~> 2.1", only: :test},
-      {:ex_doc, "~> 0.23", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
   end
 
