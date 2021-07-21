@@ -156,10 +156,11 @@ defmodule HTTPClient.Adapter do
     start_time = Telemetry.start(:request, metadata)
 
     case apply(adapter, method, args) do
-      {:ok, %Response{status: status}} = response ->
+      {:ok, %Response{status: status, headers: headers} = response} ->
         metadata = Map.put(metadata, :status_code, status)
         Telemetry.stop(:request, start_time, metadata)
-        response
+        headers = Enum.map(headers, fn {key, value} -> {String.downcase(key), value} end)
+        {:ok, %{response | headers: headers}}
 
       {:error, %Error{reason: reason}} = error_response ->
         metadata = Map.put(metadata, :error, reason)
