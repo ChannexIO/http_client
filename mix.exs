@@ -32,6 +32,7 @@ defmodule HTTPClient.MixProject do
       {:httpoison, "~> 1.8"},
       {:finch, "~> 0.6"},
       {:telemetry, "~> 0.4"},
+      {:jason, "~> 1.2"},
       {:bypass, "~> 2.1", only: :test},
       {:ex_doc, "~> 0.24", only: :dev, runtime: false}
     ]
