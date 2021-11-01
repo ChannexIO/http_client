@@ -13,6 +13,8 @@ defmodule HTTPClient.Adapters.Finch do
 
   @behaviour HTTPClient.Adapter
 
+  @delay 1000
+
   @impl true
   def request(method, url, body, headers, options) do
     perform_request(method, url, headers, body, options)
@@ -43,7 +45,7 @@ defmodule HTTPClient.Adapters.Finch do
     perform_request(:delete, url, headers, nil, options)
   end
 
-  defp perform_request(method, url, headers, body, options) do
+  defp perform_request(method, url, headers, body, options, attempt \\ 0) do
     {params, options} = Keyword.pop(options, :params)
     {basic_auth, options} = Keyword.pop(options, :basic_auth)
 
@@ -53,10 +55,23 @@ defmodule HTTPClient.Adapters.Finch do
 
     method
     |> Finch.build(url, headers, body)
-    |> Finch.request(FinchHTTPClient, options)
+    |> Finch.request(get_client(), options)
     |> case do
       {:ok, %{status: status, body: body, headers: headers}} ->
         {:ok, %Response{status: status, body: body, headers: headers, request_url: url}}
+
+      {:error,
+       %Mint.HTTPError{
+         reason: {:proxy, _}
+       }} ->
+        case attempt < 5 do
+          true ->
+            Process.sleep(attempt * @delay)
+            perform_request(method, url, headers, body, options, attempt + 1)
+
+          false ->
+            {:error, %Error{reason: :proxy_error}}
+        end
 
       {:error, error} ->
         {:error, %Error{reason: error.reason}}
@@ -87,4 +102,19 @@ defmodule HTTPClient.Adapters.Finch do
   defp normalize_option({:timeout, value}), do: {:pool_timeout, value}
   defp normalize_option({:recv_timeout, value}), do: {:receive_timeout, value}
   defp normalize_option({key, value}), do: {key, value}
+
+  defp get_client do
+    case Application.get_env(:http_client, :proxy, nil) do
+      nil -> FinchHTTPClient
+      proxies -> get_client_with_proxy(proxies)
+    end
+  end
+
+  defp get_client_with_proxy(proxy) when is_map(proxy) do
+    FinchHTTPClientWithProxy_0
+  end
+
+  defp get_client_with_proxy(proxies) when is_list(proxies) do
+    :"FinchHTTPClientWithProxy_#{Enum.random(0..length(proxies))}"
+  end
 end

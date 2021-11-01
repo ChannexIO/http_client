@@ -2,7 +2,7 @@ defmodule HTTPClient.MixProject do
   use Mix.Project
 
   @name "HTTPClient"
-  @version "0.3.2"
+  @version "0.3.3"
   @repo_url "https://github.com/ChannexIO/http_client"
 
   def project do
@@ -30,7 +30,7 @@ defmodule HTTPClient.MixProject do
     [
       {:nimble_options, "~> 0.3"},
       {:httpoison, "~> 1.8"},
-      {:finch, "~> 0.6"},
+      {:finch, "~> 0.9"},
       {:telemetry, "~> 0.4"},
       {:jason, "~> 1.2"},
       {:bypass, "~> 2.1", only: :test},
