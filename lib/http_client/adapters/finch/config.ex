@@ -28,7 +28,7 @@ defmodule HTTPClient.Adapters.Finch.Config do
   defp generate_finch_proxies(proxies) when is_list(proxies) do
     proxies
     |> Enum.with_index()
-    |> Enum.map(fn {index, proxy} ->
+    |> Enum.map(fn {proxy, index} ->
       {
         Finch,
         name: :"FinchHTTPClientWithProxy_#{index}",
