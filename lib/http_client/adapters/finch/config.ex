@@ -29,13 +29,16 @@ defmodule HTTPClient.Adapters.Finch.Config do
     proxies
     |> Enum.with_index()
     |> Enum.map(fn {proxy, index} ->
-      {
-        Finch,
-        name: :"FinchHTTPClientWithProxy_#{index}",
-        pools: %{
-          default: [conn_opts: [proxy: {proxy.scheme, proxy.address, proxy.port, proxy.opts}]]
-        }
-      }
+      Supervisor.child_spec(
+        {
+          Finch,
+          name: :"FinchHTTPClientWithProxy_#{index}",
+          pools: %{
+            default: [conn_opts: [proxy: {proxy.scheme, proxy.address, proxy.port, proxy.opts}]]
+          }
+        },
+        id: :"FinchHTTPClientWithProxy_#{index}"
+      )
     end)
   end
 end
