@@ -9,7 +9,7 @@ defmodule HTTPClient.MixProject do
     [
       app: :http_client,
       version: @version,
-      elixir: "~> 1.9",
+      elixir: "~> 1.12",
       description: "Facade for HTTP client.",
       docs: docs(),
       start_permanent: Mix.env() == :prod,
@@ -28,13 +28,13 @@ defmodule HTTPClient.MixProject do
 
   defp deps do
     [
-      {:nimble_options, "~> 0.3"},
+      {:nimble_options, "~> 0.4"},
       {:httpoison, "~> 1.8"},
-      {:finch, "~> 0.9"},
-      {:telemetry, "~> 0.4"},
-      {:jason, "~> 1.2"},
+      {:finch, "~> 0.10.1"},
+      {:telemetry, "~> 0.4 or ~> 1.0"},
+      {:jason, "~> 1.3"},
       {:bypass, "~> 2.1", only: :test},
-      {:ex_doc, "~> 0.24", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.26", only: :dev, runtime: false}
     ]
   end
 
