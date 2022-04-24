@@ -35,7 +35,7 @@ defmodule HTTPClientTest do
     test "get/3 error response", %{bypass: bypass} do
       Bypass.down(bypass)
 
-      assert {:error, %Error{reason: :econnrefused}} ==
+      assert {:error, %Error{reason: "connection refused"}} ==
                TestFinchRequest.get(endpoint(bypass), [], [])
     end
 
@@ -58,7 +58,7 @@ defmodule HTTPClientTest do
       end)
 
       headers = [{"content-type", "application/json"}]
-      options = [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
+      options = [params: %{a: 1, b: 2}, auth: {:basic, {"username", "password"}}]
 
       assert {:ok, %Response{status: 200, body: ^response_body}} =
                TestFinchRequest.post(endpoint(bypass), req_body, headers, options)
@@ -67,7 +67,7 @@ defmodule HTTPClientTest do
     test "post/4 error response", %{bypass: bypass} do
       Bypass.down(bypass)
 
-      assert {:error, %Error{reason: :econnrefused}} ==
+      assert {:error, %Error{reason: "connection refused"}} ==
                TestFinchRequest.post(endpoint(bypass), "{}", [], [])
     end
 
@@ -83,7 +83,7 @@ defmodule HTTPClientTest do
     test "request/5 error response", %{bypass: bypass} do
       Bypass.down(bypass)
 
-      assert {:error, %Error{reason: :econnrefused}} ==
+      assert {:error, %Error{reason: "connection refused"}} ==
                TestFinchRequest.request(:post, endpoint(bypass), "{}", [], [])
     end
   end
@@ -109,27 +109,23 @@ defmodule HTTPClientTest do
             assert is_integer(measurements.system_time)
             assert meta.adapter == HTTPClient.Adapters.HTTPoison
 
-            assert meta.args == [
-                     endpoint(bypass),
-                     [{"content-type", "application/json"}],
-                     [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
+            assert meta.headers == [
+                     {"authorization", "Basic dXNlcm5hbWU6cGFzc3dvcmQ="},
+                     {"accept-encoding", "gzip"},
+                     {"content-type", "application/json"}
                    ]
 
             assert meta.method == :get
+            assert meta.url == endpoint(bypass) <> "?a=1&b=2"
             send(parent, {ref, :start})
 
           [:http_client, :request, :stop] ->
             assert is_integer(measurements.duration)
             assert meta.adapter == HTTPClient.Adapters.HTTPoison
-
-            assert meta.args == [
-                     endpoint(bypass),
-                     [{"content-type", "application/json"}],
-                     [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
-                   ]
-
+            assert is_list(meta.headers)
             assert meta.method == :get
             assert meta.status_code == 200
+            assert meta.url == endpoint(bypass) <> "?a=1&b=2"
             send(parent, {ref, :stop})
 
           _ ->
@@ -148,7 +144,7 @@ defmodule HTTPClientTest do
       )
 
       headers = [{"content-type", "application/json"}]
-      options = [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
+      options = [params: %{a: 1, b: 2}, auth: {:basic, {"username", "password"}}]
 
       assert {:ok, %{status: 200}} = TestDefaultRequest.get(endpoint(bypass), headers, options)
       assert_receive {^ref, :start}
@@ -179,7 +175,7 @@ defmodule HTTPClientTest do
                status: 200
              } = default_response
 
-      assert request_url == url <> "?a=1&b=2"
+      assert to_string(request_url) == url <> "?a=1&b=2"
     end
   end
 

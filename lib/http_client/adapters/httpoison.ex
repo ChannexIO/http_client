@@ -3,7 +3,7 @@ defmodule HTTPClient.Adapters.HTTPoison do
   Implementation of `HTTPClient.Adapter` behaviour using HTTPoison HTTP client.
   """
 
-  alias HTTPClient.{Error, Response}
+  alias HTTPClient.Response
 
   @type method() :: HTTPoison.Request.method()
   @type url() :: HTTPoison.Request.url()
@@ -11,67 +11,23 @@ defmodule HTTPClient.Adapters.HTTPoison do
   @type body() :: HTTPoison.Request.body()
   @type options() :: HTTPoison.Request.options()
 
-  @behaviour HTTPClient.Adapter
+  @doc """
+  Performs the request using `HTTPoison`.
+  """
+  def perform_request(request, options \\ []) do
+    case HTTPoison.request(request.method, request.url, request.body, request.headers, options) do
+      {:ok, %{status_code: status, body: body, headers: headers}} ->
+        {request,
+         Response.new(status: status, body: body, headers: headers, request_url: request.url)}
 
-  @delay 1000
-
-  @impl true
-  def request(method, url, body, headers, options) do
-    perform_request(method, url, headers, body, options)
-  end
-
-  @impl true
-  def get(url, headers, options) do
-    perform_request(:get, url, headers, "", options)
-  end
-
-  @impl true
-  def post(url, body, headers, options) do
-    perform_request(:post, url, headers, body, options)
-  end
-
-  @impl true
-  def put(url, body, headers, options) do
-    perform_request(:put, url, headers, body, options)
-  end
-
-  @impl true
-  def patch(url, body, headers, options) do
-    perform_request(:patch, url, headers, body, options)
-  end
-
-  @impl true
-  def delete(url, headers, options) do
-    perform_request(:delete, url, headers, "", options)
-  end
-
-  defp perform_request(method, url, headers, body, options, attempt \\ 0) do
-    options = setup_proxy(options)
-    options = add_basic_auth_option(options, options[:basic_auth])
-
-    case HTTPoison.request(method, url, body, headers, options) do
-      {:ok, %{status_code: status, body: body, headers: headers, request: request}} ->
-        {:ok, %Response{status: status, body: body, headers: headers, request_url: request.url}}
-
-      {:error, %HTTPoison.Error{id: nil, reason: :proxy_error}} ->
-        case attempt < 5 do
-          true ->
-            Process.sleep(attempt * @delay)
-            perform_request(method, url, headers, body, options, attempt + 1)
-
-          false ->
-            {:error, %Error{reason: :proxy_error}}
-        end
-
-      {:error, error} ->
-        {:error, %Error{reason: error.reason}}
+      {:error, exception} ->
+        {request, exception}
     end
   end
 
-  defp add_basic_auth_option(options, nil), do: options
-
-  defp add_basic_auth_option(options, {username, password}) do
-    put_in(options, [:hackney], basic_auth: {username, password})
+  @doc false
+  def proxy(request) do
+    update_in(request.adapter_options, &setup_proxy/1)
   end
 
   defp setup_proxy(options) do
