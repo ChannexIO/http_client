@@ -3,7 +3,7 @@ defmodule HTTPClientTest do
 
   doctest HTTPClient
 
-  alias HTTPClient.Response
+  alias HTTPClient.{Error, Response}
 
   setup do
     {:ok, lasso: Lasso.open()}
@@ -33,6 +33,14 @@ defmodule HTTPClientTest do
                TestFinchRequest.get(endpoint(lasso), headers, options)
     end
 
+    @tag :skip
+    test "get/3 error response", %{lasso: lasso} do
+      # Lasso.down(lasso)
+
+      assert {:error, %Error{reason: "connection refused"}} ==
+               TestFinchRequest.get(endpoint(lasso), [], [])
+    end
+
     test "post/4 success response", %{lasso: lasso} do
       req_body = ~s({"response":"please"})
       response_body = ~s({"right":"here"})
@@ -52,10 +60,18 @@ defmodule HTTPClientTest do
       end)
 
       headers = [{"content-type", "application/json"}]
-      options = [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
+      options = [params: %{a: 1, b: 2}, auth: {:basic, {"username", "password"}}]
 
       assert {:ok, %Response{status: 200, body: ^response_body}} =
                TestFinchRequest.post(endpoint(lasso), req_body, headers, options)
+    end
+
+    @tag :skip
+    test "post/4 error response", %{lasso: lasso} do
+      # Lasso.down(lasso)
+
+      assert {:error, %Error{reason: "connection refused"}} ==
+               TestFinchRequest.post(endpoint(lasso), "{}", [], [])
     end
 
     test "request/5 success response", %{lasso: lasso} do
@@ -65,6 +81,14 @@ defmodule HTTPClientTest do
 
       assert {:ok, %Response{status: 200, body: "OK"}} =
                TestFinchRequest.request(:delete, endpoint(lasso), "", [], [])
+    end
+
+    @tag :skip
+    test "request/5 error response", %{lasso: lasso} do
+      # Lasso.down(lasso)
+
+      assert {:error, %Error{reason: "connection refused"}} ==
+               TestFinchRequest.request(:post, endpoint(lasso), "{}", [], [])
     end
   end
 
@@ -89,27 +113,23 @@ defmodule HTTPClientTest do
             assert is_integer(measurements.system_time)
             assert meta.adapter == HTTPClient.Adapters.HTTPoison
 
-            assert meta.args == [
-                     endpoint(lasso),
-                     [{"content-type", "application/json"}],
-                     [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
+            assert meta.headers == [
+                     {"authorization", "Basic dXNlcm5hbWU6cGFzc3dvcmQ="},
+                     {"accept-encoding", "gzip"},
+                     {"content-type", "application/json"}
                    ]
 
             assert meta.method == :get
+            assert_same_url(meta.url, endpoint(lasso, "/?a=1&b=2"))
             send(parent, {ref, :start})
 
           [:http_client, :request, :stop] ->
             assert is_integer(measurements.duration)
             assert meta.adapter == HTTPClient.Adapters.HTTPoison
-
-            assert meta.args == [
-                     endpoint(lasso),
-                     [{"content-type", "application/json"}],
-                     [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
-                   ]
-
+            assert is_list(meta.headers)
             assert meta.method == :get
             assert meta.status_code == 200
+            assert_same_url(meta.url, endpoint(lasso, "/?a=1&b=2"))
             send(parent, {ref, :stop})
 
           _ ->
@@ -128,7 +148,7 @@ defmodule HTTPClientTest do
       )
 
       headers = [{"content-type", "application/json"}]
-      options = [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
+      options = [params: %{a: 1, b: 2}, auth: {:basic, {"username", "password"}}]
 
       assert {:ok, %{status: 200}} = TestDefaultRequest.get(endpoint(lasso), headers, options)
       assert_receive {^ref, :start}
@@ -164,5 +184,56 @@ defmodule HTTPClientTest do
     end
   end
 
+  describe "retry with Retry-After" do
+    @describetag timeout: 10_000
+
+    test "stops after max_retries", %{lasso: lasso} do
+      {:ok, counter} = Agent.start_link(fn -> 0 end)
+
+      Lasso.expect(lasso, "GET", "/", fn conn ->
+        Agent.update(counter, &(&1 + 1))
+
+        conn
+        |> Plug.Conn.put_resp_header("retry-after", "0")
+        |> Plug.Conn.send_resp(429, "slow down")
+      end)
+
+      options = [retry: [condition_step: &rate_limited?/1, max_retries: 2]]
+
+      assert {:ok, %Response{status: 429}} = TestFinchRequest.get(endpoint(lasso), [], options)
+      assert Agent.get(counter, & &1) == 3
+    end
+
+    test "caps the Retry-After delay at max_cap", %{lasso: lasso} do
+      {:ok, counter} = Agent.start_link(fn -> 0 end)
+
+      Lasso.expect(lasso, "GET", "/", fn conn ->
+        Agent.update(counter, &(&1 + 1))
+
+        conn
+        |> Plug.Conn.put_resp_header("retry-after", "5")
+        |> Plug.Conn.send_resp(429, "slow down")
+      end)
+
+      options = [retry: [condition_step: &rate_limited?/1, max_retries: 1, max_cap: 10]]
+      started_at = System.monotonic_time(:millisecond)
+
+      assert {:ok, %Response{status: 429}} = TestFinchRequest.get(endpoint(lasso), [], options)
+      assert Agent.get(counter, & &1) == 2
+      assert System.monotonic_time(:millisecond) - started_at < 1_000
+    end
+  end
+
+  defp rate_limited?({_request, %Response{status: status}}), do: status == 429
+  defp rate_limited?(_request_response), do: false
+
   defp endpoint(%{port: port}, path \\ "/"), do: "http://localhost:#{port}#{path}"
+
+  defp assert_same_url(actual, expected) do
+    actual_uri = URI.new!(actual)
+    expected_uri = URI.new!(expected)
+
+    assert %{actual_uri | query: nil} == %{expected_uri | query: nil}
+    assert URI.decode_query(actual_uri.query || "") == URI.decode_query(expected_uri.query || "")
+  end
 end
