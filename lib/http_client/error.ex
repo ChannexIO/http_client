@@ -3,9 +3,19 @@ defmodule HTTPClient.Error do
   An error of a request.
   """
 
-  defstruct [:reason]
+  @type t() :: %__MODULE__{reason: atom()}
 
-  @type t :: %__MODULE__{reason: term()}
+  defexception [:reason]
+
+  @impl true
+  def exception(reason) when is_atom(reason) do
+    %__MODULE__{reason: reason}
+  end
+
+  @impl true
+  def message(%__MODULE__{reason: reason}) do
+    "#{reason}"
+  end
 
   defimpl Jason.Encoder do
     def encode(struct, opts) do
