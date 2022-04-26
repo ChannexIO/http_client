@@ -47,44 +47,34 @@ defmodule HTTPClient.Steps do
 
   """
   def put_default_steps(request, options \\ []) do
-    request_steps =
-      [
-        {__MODULE__, :encode_headers, []},
-        {__MODULE__, :put_default_headers, []},
-        {__MODULE__, :encode_body, []},
-        {request.adapter, :proxy, []}
-      ] ++
-        maybe_steps(options[:auth], [{__MODULE__, :auth, [options[:auth]]}]) ++
-        maybe_steps(options[:params], [{__MODULE__, :put_params, [options[:params]]}]) ++
-        maybe_steps(options[:steps], [{__MODULE__, :run_steps, [options[:steps]]}])
-
-    request_telemetry_step = {__MODULE__, :log_request_start, []}
-    response_telemetry_step = {__MODULE__, :log_response_end, []}
+    auth = options[:auth]
+    params = options[:params]
+    steps = options[:steps]
 
     retry = options[:retry]
     retry = if retry == true, do: [], else: retry
 
-    raw? = if is_nil(options[:raw]), do: true, else: options[:raw] == true
-
-    response_steps =
-      [{__MODULE__, :downcase_headers, []}] ++
-        maybe_steps(not raw?, [
-          {__MODULE__, :decompress, []},
-          {__MODULE__, :decode_body, []}
-        ]) ++
-        maybe_steps(retry, [{__MODULE__, :retry, [retry]}])
+    raw = options[:raw]
+    is_raw = if is_nil(raw), do: true, else: raw == true
 
     request
-    |> Request.append_request_steps(request_steps)
-    |> Request.append_request_steps([request_telemetry_step])
-    |> Request.append_adapter_step()
-    |> Request.append_response_steps(response_steps)
-    |> Request.append_response_steps([response_telemetry_step])
+    |> Request.prepend_request_step({__MODULE__, :encode_headers, []})
+    |> Request.prepend_request_step({__MODULE__, :put_default_headers, []})
+    |> Request.prepend_request_step({__MODULE__, :encode_body, []})
+    |> Request.prepend_request_step({request.adapter, :proxy, []})
+    |> Request.maybe_prepend_request_step(auth, {__MODULE__, :auth, [auth]})
+    |> Request.maybe_prepend_request_step(params, {__MODULE__, :put_params, [params]})
+    |> Request.maybe_prepend_request_step(steps, {__MODULE__, :run_steps, [steps]})
+    |> Request.prepend_request_step({__MODULE__, :log_request_start, []})
+    |> Request.prepend_adapter_step()
+    |> Request.prepend_response_step({__MODULE__, :downcase_headers, []})
+    |> Request.maybe_prepend_response_step(not is_raw, {__MODULE__, :decompress, []})
+    |> Request.maybe_prepend_response_step(not is_raw, {__MODULE__, :decode_body, []})
+    |> Request.maybe_prepend_response_step(retry, {__MODULE__, :retry, [retry]})
+    |> Request.prepend_response_step({__MODULE__, :log_response_end, []})
+    |> Request.reverse_request_steps()
+    |> Request.reverse_response_steps()
   end
-
-  defp maybe_steps(nil, _step), do: []
-  defp maybe_steps(false, _step), do: []
-  defp maybe_steps(_, steps), do: steps
 
   @doc """
   Adds common request headers.
@@ -148,22 +138,19 @@ defmodule HTTPClient.Steps do
   | `{:json, data}` | `Jason.encode_to_iodata!/1` | `"application/json"`                  |
 
   """
-  def encode_body(request) do
-    case request.body do
-      {:form, data} ->
-        request
-        |> Map.put(:body, URI.encode_query(data))
-        |> put_new_header("content-type", "application/x-www-form-urlencoded")
-
-      {:json, data} ->
-        request
-        |> Map.put(:body, Jason.encode_to_iodata!(data))
-        |> put_new_header("content-type", "application/json")
-
-      _other ->
-        request
-    end
+  def encode_body(%{body: {:form, data}} = request) do
+    request
+    |> Map.put(:body, URI.encode_query(data))
+    |> put_new_header("content-type", "application/x-www-form-urlencoded")
   end
+
+  def encode_body(%{body: {:json, data}} = request) do
+    request
+    |> Map.put(:body, Jason.encode_to_iodata!(data))
+    |> put_new_header("content-type", "application/json")
+  end
+
+  def encode_body(request), do: request
 
   @doc """
   Adds params to request query string.

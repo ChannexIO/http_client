@@ -76,11 +76,11 @@ defmodule HTTPClient.Request do
   end
 
   @doc """
-  Appends adapter step to request steps.
+  Prepends adapter step to request steps.
   """
-  def append_adapter_step(request) do
+  def prepend_adapter_step(request) do
     adapter_step = {request.adapter, :perform_request, [request.adapter_options]}
-    append_request_steps(request, [adapter_step])
+    prepend_request_step(request, adapter_step)
   end
 
   @doc """
@@ -91,10 +91,31 @@ defmodule HTTPClient.Request do
   end
 
   @doc """
+  Prepends request step if met condition.
+  """
+  def maybe_prepend_request_step(request, condition, step) do
+    update_in(request.request_steps, &maybe_prepend_step(&1, condition, step))
+  end
+
+  @doc """
+  Prepends request step.
+  """
+  def prepend_request_step(request, step) do
+    update_in(request.request_steps, &[step | &1])
+  end
+
+  @doc """
   Prepends request steps.
   """
   def prepend_request_steps(request, steps) do
     update_in(request.request_steps, &(steps ++ &1))
+  end
+
+  @doc """
+  Reverses request steps.
+  """
+  def reverse_request_steps(request) do
+    update_in(request.request_steps, &Enum.reverse/1)
   end
 
   @doc """
@@ -105,10 +126,31 @@ defmodule HTTPClient.Request do
   end
 
   @doc """
+  Prepends response step if met condition.
+  """
+  def maybe_prepend_response_step(request, condition, step) do
+    update_in(request.response_steps, &maybe_prepend_step(&1, condition, step))
+  end
+
+  @doc """
+  Prepends response steps.
+  """
+  def prepend_response_step(request, step) do
+    update_in(request.response_steps, &[step | &1])
+  end
+
+  @doc """
   Prepends response steps.
   """
   def prepend_response_steps(request, steps) do
     update_in(request.response_steps, &(steps ++ &1))
+  end
+
+  @doc """
+  Reverses response steps.
+  """
+  def reverse_response_steps(request) do
+    update_in(request.response_steps, &Enum.reverse/1)
   end
 
   @doc """
@@ -180,4 +222,8 @@ defmodule HTTPClient.Request do
   defp result(exception) when is_exception(exception) do
     {:error, %Error{reason: Exception.message(exception)}}
   end
+
+  defp maybe_prepend_step(steps, nil, _step), do: steps
+  defp maybe_prepend_step(steps, false, _step), do: steps
+  defp maybe_prepend_step(steps, _, step), do: [step | steps]
 end
