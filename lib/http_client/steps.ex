@@ -295,13 +295,12 @@ defmodule HTTPClient.Steps do
   end
 
   defp retry(request, response_or_exception, options) do
-    delay = Keyword.get(options, :delay, 2000)
-    max_retries = Keyword.get(options, :max_retries, 2)
     retry_count = Request.get_private(request, :retry_count, 0)
+    retry_params = configure_retry(options, retry_count)
 
-    if retry_count < max_retries do
-      log_retry(response_or_exception, retry_count, max_retries, delay)
-      Process.sleep(delay)
+    if retry_params.retry? do
+      log_retry(response_or_exception, retry_count, retry_params)
+      Process.sleep(retry_params.delay)
       request = Request.put_private(request, :retry_count, retry_count + 1)
 
       {_, result} = Request.run(request)
@@ -311,14 +310,45 @@ defmodule HTTPClient.Steps do
     end
   end
 
-  defp log_retry(response_or_exception, retry_count, max_retries, delay) do
-    retries_left =
-      case max_retries - retry_count do
-        1 -> "1 attempt"
-        n -> "#{n} attempts"
-      end
+  defp configure_retry(options, retry_count) do
+    case Keyword.get(options, :delay, 2000) do
+      delay when is_integer(delay) ->
+        max_retries = Keyword.get(options, :max_retries, 2)
+        retry = retry_count < max_retries
+        %{delay: delay, max_retries: max_retries, retry?: retry, type: :linear}
 
-    message = ["Will retry in #{delay}ms, ", retries_left, " left"]
+      :exponent ->
+        max_cap = Keyword.get(options, :max_cap, :timer.minutes(20))
+        delays = cap(exponential_backoff(), max_cap)
+        %{delay: Enum.at(delays, retry_count), retry?: true, type: :exponent}
+    end
+  end
+
+  defp exponential_backoff(initial_delay \\ :timer.seconds(1), factor \\ 2) do
+    Stream.unfold(initial_delay, fn last_delay ->
+      {last_delay, round(last_delay * factor)}
+    end)
+  end
+
+  defp cap(delays, max) do
+    Stream.map(delays, fn
+      delay when delay <= max -> delay
+      _ -> max
+    end)
+  end
+
+  defp log_retry(response_or_exception, retry_count, retry_params) do
+    message =
+      cond do
+        retry_params.type == :exponent ->
+          "Will retry in #{retry_params.delay}ms"
+
+        retry_params.max_retries - retry_count == 1 ->
+          "Will retry in #{retry_params.delay}ms, 1 attempt left"
+
+        attempts = retry_params.max_retries - retry_count ->
+          "Will retry in #{retry_params.delay}ms, #{attempts} attempts left"
+      end
 
     case response_or_exception do
       %{__exception__: true} = exception ->
