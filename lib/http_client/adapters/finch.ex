@@ -14,8 +14,8 @@ defmodule HTTPClient.Adapters.Finch do
   @doc """
   Performs the request using `Finch`.
   """
-  def perform_request(request, options \\ []) do
-    options = prepare_options(options)
+  def perform_request(request) do
+    options = prepare_options(request.options)
 
     request.method
     |> Finch.build(request.url, request.headers, request.body)

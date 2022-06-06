@@ -152,11 +152,9 @@ defmodule HTTPClient.Adapter do
   end
 
   defp perform(adapter, method, url, options) do
-    steps_options = Keyword.get(options, :options, [])
-
     adapter
     |> Request.build(method, url, options)
-    |> Steps.put_default_steps(steps_options)
+    |> Steps.put_default_steps()
     |> Request.run()
   end
 

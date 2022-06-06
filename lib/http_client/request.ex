@@ -6,7 +6,7 @@ defmodule HTTPClient.Request do
 
   * `:adapter` - an implementation of adapter to use
 
-  * `:adapter_options` - an adapter's options
+  * `:options` - steps and adapter options
 
   * `:method` - the HTTP request method
 
@@ -22,21 +22,25 @@ defmodule HTTPClient.Request do
 
   * `:response_steps` - the list of response steps
 
+  * `:error_steps` - the list of error steps
+
   * `:private` - a map reserved for internal use.
+
   """
 
   alias HTTPClient.{Error, Request, Response}
 
   defstruct [
     :adapter,
-    :method,
-    :url,
-    adapter_options: [],
+    method: :get,
+    url: "",
+    options: [],
     headers: [],
     body: "",
     halted: false,
     request_steps: [],
     response_steps: [],
+    error_steps: [],
     private: %{}
   ]
 
@@ -67,7 +71,7 @@ defmodule HTTPClient.Request do
   def build(adapter, method, url, options \\ []) do
     %__MODULE__{
       adapter: adapter,
-      adapter_options: Keyword.get(options, :options, []),
+      options: prepare_options(options),
       method: method,
       url: URI.parse(url),
       headers: Keyword.get(options, :headers, []),
@@ -79,22 +83,7 @@ defmodule HTTPClient.Request do
   Prepends adapter step to request steps.
   """
   def prepend_adapter_step(request) do
-    adapter_step = {request.adapter, :perform_request, [request.adapter_options]}
-    prepend_request_step(request, adapter_step)
-  end
-
-  @doc """
-  Appends request steps.
-  """
-  def append_request_steps(request, steps) do
-    update_in(request.request_steps, &(&1 ++ steps))
-  end
-
-  @doc """
-  Prepends request step if met condition.
-  """
-  def maybe_prepend_request_step(request, condition, step) do
-    update_in(request.request_steps, &maybe_prepend_step(&1, condition, step))
+    prepend_request_step(request, &request.adapter.perform_request/1)
   end
 
   @doc """
@@ -105,13 +94,6 @@ defmodule HTTPClient.Request do
   end
 
   @doc """
-  Prepends request steps.
-  """
-  def prepend_request_steps(request, steps) do
-    update_in(request.request_steps, &(steps ++ &1))
-  end
-
-  @doc """
   Reverses request steps.
   """
   def reverse_request_steps(request) do
@@ -119,31 +101,10 @@ defmodule HTTPClient.Request do
   end
 
   @doc """
-  Appends response steps.
-  """
-  def append_response_steps(request, steps) do
-    update_in(request.response_steps, &(&1 ++ steps))
-  end
-
-  @doc """
-  Prepends response step if met condition.
-  """
-  def maybe_prepend_response_step(request, condition, step) do
-    update_in(request.response_steps, &maybe_prepend_step(&1, condition, step))
-  end
-
-  @doc """
-  Prepends response steps.
+  Prepends response step.
   """
   def prepend_response_step(request, step) do
     update_in(request.response_steps, &[step | &1])
-  end
-
-  @doc """
-  Prepends response steps.
-  """
-  def prepend_response_steps(request, steps) do
-    update_in(request.response_steps, &(steps ++ &1))
   end
 
   @doc """
@@ -154,26 +115,56 @@ defmodule HTTPClient.Request do
   end
 
   @doc """
+  Prepends error step.
+  """
+  def prepend_error_step(request, step) do
+    update_in(request.error_steps, &[step | &1])
+  end
+
+  @doc """
+  Reverses error steps.
+  """
+  def reverse_error_steps(request) do
+    update_in(request.error_steps, &Enum.reverse/1)
+  end
+
+  @doc """
   Runs a request pipeline.
 
   Returns `{:ok, response}` or `{:error, exception}`.
   """
   def run(request) do
-    Enum.reduce_while(request.request_steps, request, fn step, acc ->
-      case run_step(step, acc) do
-        %Request{} = request ->
-          {:cont, request}
+    run_request(request.request_steps, request)
+  end
 
-        {%Request{halted: true}, response_or_exception} ->
-          {:halt, result(response_or_exception)}
+  defp run_request([step | steps], request) do
+    case run_step(step, request) do
+      %Request{} = request ->
+        run_request(steps, request)
 
-        {request, %Response{} = response} ->
-          {:halt, run_response(request, response)}
+      {%Request{halted: true}, response_or_exception} ->
+        result(response_or_exception)
 
-        {request, exception} when is_exception(exception) ->
-          {:halt, run_response(request, exception)}
-      end
-    end)
+      {request, %Response{} = response} ->
+        run_response(request, response)
+
+      {request, exception} when is_exception(exception) ->
+        run_error(request, exception)
+    end
+  end
+
+  defp run_request([], request) do
+    case run_step(&request.adapter.perform_request/1, request) do
+      {request, %Response{} = response} ->
+        run_response(request, response)
+
+      {request, exception} when is_exception(exception) ->
+        run_error(request, exception)
+
+      other ->
+        raise "expected adapter to return {request, response} or {request, exception}, " <>
+                "got: #{inspect(other)}"
+    end
   end
 
   defp run_response(request, response) do
@@ -188,8 +179,28 @@ defmodule HTTPClient.Request do
           {request, %Response{} = response} ->
             {:cont, {request, response}}
 
-          {request, %{__exception__: true} = exception} ->
-            {:halt, {request, exception}}
+          {request, exception} when is_exception(exception) ->
+            {:halt, run_error(request, exception)}
+        end
+      end)
+
+    result(response_or_exception)
+  end
+
+  defp run_error(request, exception) do
+    steps = request.error_steps
+
+    {_request, response_or_exception} =
+      Enum.reduce_while(steps, {request, exception}, fn step, {request, exception} ->
+        case run_step(step, {request, exception}) do
+          {%Request{halted: true} = request, response_or_exception} ->
+            {:halt, {request, response_or_exception}}
+
+          {request, exception} when is_exception(exception) ->
+            {:cont, {request, exception}}
+
+          {request, %Response{} = response} ->
+            {:halt, run_response(request, response)}
         end
       end)
 
@@ -223,7 +234,9 @@ defmodule HTTPClient.Request do
     {:error, %Error{reason: Exception.message(exception)}}
   end
 
-  defp maybe_prepend_step(steps, nil, _step), do: steps
-  defp maybe_prepend_step(steps, false, _step), do: steps
-  defp maybe_prepend_step(steps, _, step), do: [step | steps]
+  defp prepare_options(options) do
+    options
+    |> Keyword.get(:options, [])
+    |> Map.new()
+  end
 end

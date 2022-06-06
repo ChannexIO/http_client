@@ -14,7 +14,9 @@ defmodule HTTPClient.Adapters.HTTPoison do
   @doc """
   Performs the request using `HTTPoison`.
   """
-  def perform_request(request, options \\ []) do
+  def perform_request(request) do
+    options = Map.to_list(request.options)
+
     case HTTPoison.request(request.method, request.url, request.body, request.headers, options) do
       {:ok, %{status_code: status, body: body, headers: headers}} ->
         {request,
@@ -27,7 +29,7 @@ defmodule HTTPClient.Adapters.HTTPoison do
 
   @doc false
   def proxy(request) do
-    update_in(request.adapter_options, &setup_proxy/1)
+    update_in(request.options, &setup_proxy/1)
   end
 
   defp setup_proxy(options) do
@@ -38,7 +40,7 @@ defmodule HTTPClient.Adapters.HTTPoison do
   end
 
   defp add_proxy(options, proxy) when is_map(proxy) do
-    Keyword.put(options, :proxy, "#{proxy.scheme}://#{proxy.address}:#{proxy.port}")
+    Map.put(options, :proxy, "#{proxy.scheme}://#{proxy.address}:#{proxy.port}")
   end
 
   defp add_proxy(options, proxies) when is_list(proxies) do

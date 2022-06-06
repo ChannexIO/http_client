@@ -5,75 +5,30 @@ defmodule HTTPClient.Steps do
 
   require Logger
 
-  alias HTTPClient.{Request, Telemetry}
+  alias HTTPClient.{Request, Response, Telemetry}
 
   @doc """
   Adds default steps.
-
-  ## Request steps
-
-    * `encode_headers/1`
-
-    * `put_default_headers/1`
-
-    * `encode_body/1`
-
-    * [`&auth(&1, options[:auth])`](`auth/2`) (if `options[:auth]` is set)
-
-    * [`&put_params(&1, options[:params])`](`put_params/2`) (if `options[:params]` is set)
-
-    * [`&run_steps(&1, options[:steps])`](`run_steps/2`) (if `options[:steps]` is set)
-
-  ## Response steps
-
-    * [`&retry(&1, options[:retry])`](`retry/2`) (if `options[:retry]` is set to
-      an atom true or a options keywords list)
-
-    * `decompress/1`
-
-    * `decode_body/1`
-
-  ## Options
-
-    * `:auth` - if set, adds the `auth/2` step
-
-    * `:params` - if set, adds the `put_params/2` step
-
-    * `:raw` if set to `true`, skips `decompress/1` and `decode_body/1` steps
-
-    * `:retry` - if set, adds the `retry/2` step to response step
-
-    * `:steps` - if set, runs the `run_steps/2` step with the given steps
-
   """
-  def put_default_steps(request, options \\ []) do
-    auth = options[:auth]
-    params = options[:params]
-    steps = options[:steps]
-
-    retry = options[:retry]
-    retry = if retry == true, do: [], else: retry
-
-    raw = options[:raw]
-    is_raw = if is_nil(raw), do: true, else: raw == true
-
+  def put_default_steps(request) do
     request
-    |> Request.prepend_request_step({__MODULE__, :encode_headers, []})
-    |> Request.prepend_request_step({__MODULE__, :put_default_headers, []})
-    |> Request.prepend_request_step({__MODULE__, :encode_body, []})
-    |> Request.prepend_request_step({request.adapter, :proxy, []})
-    |> Request.maybe_prepend_request_step(auth, {__MODULE__, :auth, [auth]})
-    |> Request.maybe_prepend_request_step(params, {__MODULE__, :put_params, [params]})
-    |> Request.maybe_prepend_request_step(steps, {__MODULE__, :run_steps, [steps]})
-    |> Request.prepend_request_step({__MODULE__, :log_request_start, []})
+    |> Request.prepend_request_step(&__MODULE__.encode_headers/1)
+    |> Request.prepend_request_step(&__MODULE__.put_default_headers/1)
+    |> Request.prepend_request_step(&__MODULE__.encode_body/1)
+    |> Request.prepend_request_step(&request.adapter.proxy/1)
+    |> Request.prepend_request_step(&__MODULE__.auth/1)
+    |> Request.prepend_request_step(&__MODULE__.put_params/1)
+    |> Request.prepend_request_step(&__MODULE__.log_request_start/1)
     |> Request.prepend_adapter_step()
-    |> Request.prepend_response_step({__MODULE__, :downcase_headers, []})
-    |> Request.maybe_prepend_response_step(not is_raw, {__MODULE__, :decompress, []})
-    |> Request.maybe_prepend_response_step(not is_raw, {__MODULE__, :decode_body, []})
-    |> Request.maybe_prepend_response_step(retry, {__MODULE__, :retry, [retry]})
-    |> Request.prepend_response_step({__MODULE__, :log_response_end, []})
+    |> Request.prepend_response_step(&__MODULE__.downcase_headers/1)
+    |> Request.prepend_response_step(&__MODULE__.decompress_body/1)
+    |> Request.prepend_response_step(&__MODULE__.decode_body/1)
+    |> Request.prepend_response_step(&__MODULE__.retry/1)
+    |> Request.prepend_response_step(&__MODULE__.log_response_end/1)
+    |> Request.prepend_error_step(&__MODULE__.retry/1)
     |> Request.reverse_request_steps()
     |> Request.reverse_response_steps()
+    |> Request.reverse_error_steps()
   end
 
   @doc """
@@ -96,11 +51,17 @@ defmodule HTTPClient.Steps do
     * `{:basic, tuple}` - uses Basic HTTP authentication
     * `{:bearer, token}` - uses Bearer HTTP authentication
   """
-  def auth(request, {:bearer, token}) when is_binary(token) do
+  def auth(request) do
+    auth(request, Map.get(request.options, :auth))
+  end
+
+  defp auth(request, nil), do: request
+
+  defp auth(request, {:bearer, token}) when is_binary(token) do
     put_new_header(request, "authorization", "Bearer #{token}")
   end
 
-  def auth(request, {:basic, data}) when is_tuple(data) do
+  defp auth(request, {:basic, data}) when is_tuple(data) do
     0
     |> Range.new(tuple_size(data) - 1)
     |> Enum.map_join(":", &"#{elem(data, &1)}")
@@ -155,7 +116,15 @@ defmodule HTTPClient.Steps do
   @doc """
   Adds params to request query string.
   """
-  def put_params(request, params) do
+  def put_params(request) do
+    put_params(request, get_options(request.options, :params))
+  end
+
+  defp put_params(request, []) do
+    request
+  end
+
+  defp put_params(request, params) do
     encoded = URI.encode_query(params)
 
     update_in(request.url.query, fn
@@ -188,7 +157,16 @@ defmodule HTTPClient.Steps do
   | gzip   | `:zlib.gunzip/1`                                                 |
 
   """
+
   def decode_body({request, %{body: ""} = response}), do: {request, response}
+
+  def decode_body({request, response}) when request.options.raw == true do
+    {request, response}
+  end
+
+  def decode_body({request, response}) when request.options.decode_body == false do
+    {request, response}
+  end
 
   def decode_body({request, response}) do
     case format(request, response) do
@@ -227,13 +205,17 @@ defmodule HTTPClient.Steps do
   @doc """
   Decompresses the response body based on the `content-encoding` header.
   """
-  def decompress(request_response)
+  def decompress_body(request_response)
 
-  def decompress({request, %{body: ""} = response}) do
+  def decompress_body({request, %{body: ""} = response}) do
     {request, response}
   end
 
-  def decompress({request, response}) do
+  def decompress_body({request, response}) when request.options.raw == true do
+    {request, response}
+  end
+
+  def decompress_body({request, response}) do
     compression_algorithms = get_content_encoding_header(response.headers)
     {request, update_in(response.body, &decompress_body(&1, compression_algorithms))}
   end
@@ -258,70 +240,120 @@ defmodule HTTPClient.Steps do
     raise("unsupported decompression algorithm: #{inspect(algorithm)}")
   end
 
+  @default_retry_delay :timer.seconds(2)
+
   @doc """
   Retries a request in face of errors.
 
-  It retries a request that resulted in:
+  This function can be used as either or both response and error step.
 
-    * a response with status 5xx
+  ## Request Options
 
-    * an exception
+    * `:retry` - can be one of the following:
 
-  ## Options
+        * `:safe` (default) - retry GET/HEAD requests on HTTP 408/429/5xx
+          responses or exceptions
+
+        * `:always` - always retry
 
     * `:condition_step` - step on the execution of which depends on whether
       to repeat the request
 
     * `:delay` - sleep this number of milliseconds before making another
-      attempt, defaults to `2000`
+      attempt, defaults to `#{@default_retry_delay}`. If the response is
+      HTTP 429 and contains the `retry-after` header, the value of the header
+      is used as the next retry delay.
 
     * `:max_retries` - maximum number of retry attempts, defaults to `2`
-      (for a total of `3` requests to the server, including the initial one.)
+    (for a total of `3` requests to the server, including the initial one.)
 
   """
-  def retry({request, exception}, options) when is_exception(exception) and is_list(options) do
-    retry(request, exception, options)
+  def retry({request, exception}) when is_exception(exception) do
+    retry(request, exception)
   end
 
-  def retry({request, response}, options) when is_list(options) do
+  def retry({request, response})
+      when not is_map_key(request.options, :retry) or request.options.retry == :safe do
+    retry_safe(request, response)
+  end
+
+  def retry({request, response}) when request.options.retry == :always do
+    retry(request, response)
+  end
+
+  def retry({request, response}) do
     default_condition = fn {_request, response} -> response.status >= 500 end
-    condition_step = Keyword.get(options, :condition_step, default_condition)
+    condition_step = get_options(request.options.retry, :condition_step, default_condition)
 
     if Request.run_step(condition_step, {request, response}) do
-      retry(request, response, options)
+      retry(request, response)
     else
       {request, response}
     end
   end
 
-  defp retry(request, response_or_exception, options) do
-    retry_count = Request.get_private(request, :retry_count, 0)
-    retry_params = configure_retry(options, retry_count)
+  defp retry_safe(request, response) do
+    if request.method in [:get, :head] do
+      case response do
+        %Response{status: status} when status in [408, 429] or status in 500..599 ->
+          retry(request, response)
 
-    if retry_params.retry? do
-      log_retry(response_or_exception, retry_count, retry_params)
-      Process.sleep(retry_params.delay)
-      request = Request.put_private(request, :retry_count, retry_count + 1)
-
-      {_, result} = Request.run(request)
-      {Request.halt(request), result}
+        %Response{} ->
+          {request, response}
+      end
     else
-      {request, response_or_exception}
+      {request, response}
     end
   end
 
-  defp configure_retry(options, retry_count) do
-    case Keyword.get(options, :delay, 2000) do
+  defp retry(request, response_or_exception) do
+    retry_count = Request.get_private(request, :retry_count, 0)
+
+    case configure_retry(request, response_or_exception, retry_count) do
+      %{retry?: true} = retry_params ->
+        log_retry(response_or_exception, retry_count, retry_params)
+        Process.sleep(retry_params.delay)
+        request = Request.put_private(request, :retry_count, retry_count + 1)
+
+        {_, result} = Request.run(request)
+        {Request.halt(request), result}
+
+      _ ->
+        {request, response_or_exception}
+    end
+  end
+
+  defp configure_retry(request, response_or_exception, retry_count) do
+    retry_options = get_options(request.options, :retry)
+
+    case get_retry_delay(retry_options, response_or_exception) do
       delay when is_integer(delay) ->
-        max_retries = Keyword.get(options, :max_retries, 2)
+        max_retries = get_options(retry_options, :max_retries, 2)
         retry = retry_count < max_retries
         %{delay: delay, max_retries: max_retries, retry?: retry, type: :linear}
 
+      {:retry_after, delay} ->
+        %{delay: delay, retry?: true, type: :retry_after}
+
       :exponent ->
-        max_cap = Keyword.get(options, :max_cap, :timer.minutes(20))
+        max_cap = get_options(retry_options, :max_cap, :timer.minutes(20))
         delays = cap(exponential_backoff(), max_cap)
         %{delay: Enum.at(delays, retry_count), retry?: true, type: :exponent}
     end
+  end
+
+  defp get_retry_delay(options, %Response{status: 429, headers: headers}) do
+    case List.keyfind(headers, "retry-after", 0) do
+      {_, header_delay} ->
+        {:retry_after, retry_delay_in_ms(header_delay)}
+
+      nil ->
+        get_options(options, :delay, @default_retry_delay)
+    end
+  end
+
+  defp get_retry_delay(options, _response_or_exception) do
+    get_options(options, :delay, @default_retry_delay)
   end
 
   defp exponential_backoff(initial_delay \\ :timer.seconds(1), factor \\ 2) do
@@ -337,9 +369,25 @@ defmodule HTTPClient.Steps do
     end)
   end
 
+  defp retry_delay_in_ms(delay_value) do
+    case Integer.parse(delay_value) do
+      {seconds, ""} ->
+        :timer.seconds(seconds)
+
+      :error ->
+        delay_value
+        |> parse_http_datetime()
+        |> DateTime.diff(DateTime.utc_now(), :millisecond)
+        |> max(0)
+    end
+  end
+
   defp log_retry(response_or_exception, retry_count, retry_params) do
     message =
       cond do
+        retry_params.type == :retry_after ->
+          "Will retry after #{retry_params.delay}ms"
+
         retry_params.type == :exponent ->
           "Will retry in #{retry_params.delay}ms"
 
@@ -352,39 +400,12 @@ defmodule HTTPClient.Steps do
 
     case response_or_exception do
       %{__exception__: true} = exception ->
-        Logger.error(["HTTPClient: Got exception. ", message])
+        Logger.error(["retry: got exception. ", message])
         Logger.error(["** (#{inspect(exception.__struct__)}) ", Exception.message(exception)])
 
       response ->
-        Logger.error(["HTTPClient: Got response with status #{response.status}. ", message])
+        Logger.error(["retry: got response with status #{response.status}. ", message])
     end
-  end
-
-  @doc """
-  Runs the given steps.
-
-  A step is a function that takes and returns a usually updated `state`.
-  The `state` is:
-
-    * a `request` struct for request steps
-
-    * a `{request, response}` tuple for response steps
-
-    * a `{request, exception}` tuple for error steps
-
-  A step can be one of the following:
-
-    * a 1-arity function
-
-    * a `{module, function, args}` tuple - calls `apply(module, function, [state | args])`
-
-    * a `{module, options}` tuple - calls `module.run(state, options)`
-
-    * a `module` atom - calls `module.run(state, [])`
-
-  """
-  def run_steps(request, steps) when is_list(steps) do
-    Enum.reduce(steps, request, &Request.run_step/2)
   end
 
   @doc false
@@ -406,6 +427,14 @@ defmodule HTTPClient.Steps do
   end
 
   ## Utilities
+
+  defp get_options(options, key, default \\ [])
+
+  defp get_options(options, key, default) when is_map_key(options, key) do
+    Map.get(options, key, default)
+  end
+
+  defp get_options(options, key, default), do: options[key] || default
 
   defp get_content_encoding_header(headers) do
     if value = get_header(headers, "content-encoding") do
@@ -458,5 +487,32 @@ defmodule HTTPClient.Steps do
 
   defp format_http_datetime(datetime) do
     Calendar.strftime(datetime, "%a, %d %b %Y %H:%M:%S GMT")
+  end
+
+  @month_numbers %{
+    "Jan" => "01",
+    "Feb" => "02",
+    "Mar" => "03",
+    "Apr" => "04",
+    "May" => "05",
+    "Jun" => "06",
+    "Jul" => "07",
+    "Aug" => "08",
+    "Sep" => "09",
+    "Oct" => "10",
+    "Nov" => "11",
+    "Dec" => "12"
+  }
+  defp parse_http_datetime(datetime) do
+    [_day_of_week, day, month, year, time, "GMT"] = String.split(datetime, " ")
+    date = year <> "-" <> @month_numbers[month] <> "-" <> day
+
+    case DateTime.from_iso8601(date <> " " <> time <> "Z") do
+      {:ok, valid_datetime, 0} ->
+        valid_datetime
+
+      {:error, reason} ->
+        raise "could not parse \"Retry-After\" header #{datetime} - #{reason}"
+    end
   end
 end
