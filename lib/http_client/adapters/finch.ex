@@ -43,18 +43,45 @@ defmodule HTTPClient.Adapters.Finch do
   defp normalize_option({:recv_timeout, value}), do: {:receive_timeout, value}
   defp normalize_option({key, value}), do: {key, value}
 
-  defp get_client do
-    case Application.get_env(:http_client, :proxy, nil) do
-      nil -> FinchHTTPClient
-      proxies -> get_client_with_proxy(proxies)
+  defp get_client() do
+    :http_client
+    |> Application.get_env(:proxy)
+    |> get_client_name()
+  end
+
+  defp get_client_name(nil), do: HTTPClient.Finch
+
+  defp get_client_name(proxies) when is_list(proxies) do
+    proxies
+    |> Enum.random()
+    |> get_client_name()
+  end
+
+  defp get_client_name(proxy) when is_map(proxy) do
+    name = custom_pool_name(proxy)
+    pools = %{default: [conn_opts: [proxy: compose_proxy(proxy)]]}
+    child_spec = {Finch, name: name, pools: pools}
+
+    case DynamicSupervisor.start_child(HTTPClient.FinchSupervisor, child_spec) do
+      {:ok, _} -> name
+      {:error, {:already_started, _}} -> name
     end
   end
 
-  defp get_client_with_proxy(proxy) when is_map(proxy) do
-    FinchHTTPClientWithProxy_0
+  defp compose_proxy(proxy) do
+    {proxy.scheme, proxy.address, to_integer(proxy.port), proxy.opts}
   end
 
-  defp get_client_with_proxy(proxies) when is_list(proxies) do
-    :"FinchHTTPClientWithProxy_#{Enum.random(0..length(proxies))}"
+  defp to_integer(term) when is_integer(term), do: term
+  defp to_integer(term) when is_binary(term), do: String.to_integer(term)
+
+  defp custom_pool_name(opts) do
+    name =
+      opts
+      |> :erlang.term_to_binary()
+      |> :erlang.md5()
+      |> Base.url_encode64(padding: false)
+
+    Module.concat(HTTPClient.FinchSupervisor, "Pool_#{name}")
   end
 end
