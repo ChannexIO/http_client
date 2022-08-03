@@ -88,15 +88,15 @@ defmodule HTTPClient.Steps do
   end
 
   @doc """
-  Encodes the request body based on its shape.
+  Encodes the request body.
 
-  If body is of the following shape, it's encoded and its `content-type` set
-  accordingly. Otherwise it's unchanged.
+  ## Request Options
 
-  | Shape           | Encoder                     | Content-Type                          |
-  | --------------- | --------------------------- | ------------------------------------- |
-  | `{:form, data}` | `URI.encode_query/1`        | `"application/x-www-form-urlencoded"` |
-  | `{:json, data}` | `Jason.encode_to_iodata!/1` | `"application/json"`                  |
+    * `:form` - if set, encodes the request body as form data (using `URI.encode_query/1`).
+
+    * `:json` - if set, encodes the request body as JSON (using `Jason.encode_to_iodata!/1`), sets
+                the `accept` header to `application/json`, and the `content-type`
+                header to `application/json`.
 
   """
   def encode_body(%{body: {:form, data}} = request) do
@@ -109,6 +109,7 @@ defmodule HTTPClient.Steps do
     request
     |> Map.put(:body, Jason.encode_to_iodata!(data))
     |> put_new_header("content-type", "application/json")
+    |> put_new_header("accept", "application/json")
   end
 
   def encode_body(request), do: request
@@ -339,11 +340,43 @@ defmodule HTTPClient.Steps do
         max_cap = get_options(retry_options, :max_cap, :timer.minutes(20))
         delays = cap(exponential_backoff(), max_cap)
         %{delay: Enum.at(delays, retry_count), retry?: true, type: :exponent}
+
+      :x_rate_limit ->
+        delay = check_x_rate_limit(response_or_exception)
+        %{delay: delay, retry?: true, type: :x_rate_limit}
+    end
+  end
+
+  defp check_x_rate_limit(%Response{headers: headers}) do
+    case get_headers(headers, ["x-ratelimit-reset", "x-ratelimit-remaining"]) do
+      %{"x-ratelimit-remaining" => "0", "x-ratelimit-reset" => timestamp} ->
+        get_x_rate_limit_delay(timestamp)
+
+      %{"x-ratelimit-remaining" => "", "x-ratelimit-reset" => timestamp} ->
+        get_x_rate_limit_delay(timestamp)
+
+      %{"x-ratelimit-reset" => timestamp} = headers when map_size(headers) == 1 ->
+        get_x_rate_limit_delay(timestamp)
+
+      _headers ->
+        @default_retry_delay
+    end
+  end
+
+  defp check_x_rate_limit(_response_or_exception), do: @default_retry_delay
+
+  defp get_x_rate_limit_delay(timestamp) do
+    with {timestamp, ""} <- Integer.parse(timestamp),
+         {:ok, datetime} <- DateTime.from_unix(timestamp),
+         seconds when seconds > 0 <- DateTime.diff(datetime, DateTime.utc_now()) do
+      :timer.seconds(seconds)
+    else
+      _ -> @default_retry_delay
     end
   end
 
   defp get_retry_delay(options, %Response{status: 429, headers: headers}) do
-    case List.keyfind(headers, "retry-after", 0) do
+    case get_header(headers, "retry-after", 0) do
       {_, header_delay} ->
         {:retry_after, retry_delay_in_ms(header_delay)}
 
@@ -384,17 +417,21 @@ defmodule HTTPClient.Steps do
 
   defp log_retry(response_or_exception, retry_count, retry_params) do
     message =
-      cond do
-        retry_params.type == :retry_after ->
+      case retry_params do
+        %{type: :retry_after} ->
           "Will retry after #{retry_params.delay}ms"
 
-        retry_params.type == :exponent ->
+        %{type: :exponent} ->
           "Will retry in #{retry_params.delay}ms"
 
-        retry_params.max_retries - retry_count == 1 ->
+        %{type: :x_rate_limit} ->
+          "Will retry after #{retry_params.delay}ms"
+
+        %{max_retries: max_retries} when max_retries - retry_count == 1 ->
           "Will retry in #{retry_params.delay}ms, 1 attempt left"
 
-        attempts = retry_params.max_retries - retry_count ->
+        _retry_params ->
+          attempts = retry_params.max_retries - retry_count
           "Will retry in #{retry_params.delay}ms, #{attempts} attempts left"
       end
 
@@ -448,8 +485,14 @@ defmodule HTTPClient.Steps do
     end
   end
 
-  defp get_header(headers, name) do
-    Enum.find_value(headers, nil, fn {key, value} ->
+  defp get_headers(headers, keys) when is_list(keys) do
+    headers
+    |> Keyword.take(keys)
+    |> Map.new()
+  end
+
+  defp get_header(headers, name, default_value \\ nil) do
+    Enum.find_value(headers, default_value, fn {key, value} ->
       if String.downcase(key) == name, do: value
     end)
   end
