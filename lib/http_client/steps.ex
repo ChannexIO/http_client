@@ -377,11 +377,9 @@ defmodule HTTPClient.Steps do
 
   defp get_retry_delay(options, %Response{status: 429, headers: headers}) do
     case get_header(headers, "retry-after", 0) do
-      {_, header_delay} ->
-        {:retry_after, retry_delay_in_ms(header_delay)}
-
-      nil ->
-        get_options(options, :delay, @default_retry_delay)
+      {_, header_delay} -> {:retry_after, retry_delay_in_ms(header_delay)}
+      0 -> {:retry_after, @default_retry_delay}
+      nil -> get_options(options, :delay, @default_retry_delay)
     end
   end
 
