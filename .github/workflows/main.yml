@@ -3,17 +3,34 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  format:
-    name: Format and compile with warnings as errors
-    runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-20.04
+    env:
+      MIX_ENV: test
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - pair:
+              elixir: "1.13"
+              otp: "24.3.4.10"
+          - pair:
+              elixir: "1.15"
+              otp: "26.0"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Install OTP and Elixir
         uses: erlef/setup-beam@v1
         with:
-          otp-version: 24.1
-          elixir-version: 1.12.3
+          otp-version: ${{matrix.pair.otp}}
+          elixir-version: ${{matrix.pair.elixir}}
+
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: deps
+          key: mix-deps-${{ hashFiles('**/mix.lock') }}
 
       - name: Install dependencies
         run: mix deps.get
@@ -21,31 +38,11 @@ jobs:
       - name: Run "mix format"
         run: mix format --check-formatted
 
+      - name: Check unused dependencies
+        run: mix deps.unlock --check-unused
+
       - name: Compile with --warnings-as-errors
         run: mix compile --warnings-as-errors
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - erlang: 24.1
-            elixir: 1.12.3
-          - erlang: 24.1
-            elixir: 1.13.0
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install OTP and Elixir
-        uses: erlef/setup-elixir@v1
-        with:
-          otp-version: ${{matrix.erlang}}
-          elixir-version: ${{matrix.elixir}}
-
-      - name: Install dependencies
-        run: mix deps.get
 
       - name: Run tests
         run: mix test --trace
