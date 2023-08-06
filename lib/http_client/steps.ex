@@ -46,16 +46,24 @@ defmodule HTTPClient.Steps do
   @doc """
   Sets request authentication.
 
-  `auth` can be one of:
+    * `:auth` - sets the `authorization` header:
 
-    * `{:basic, tuple}` - uses Basic HTTP authentication
-    * `{:bearer, token}` - uses Bearer HTTP authentication
+        * `string` - sets to this value;
+
+        * `{:basic, tuple}` - uses Basic HTTP authentication;
+
+        * `{:bearer, token}` - uses Bearer HTTP authentication;
+
   """
   def auth(request) do
     auth(request, Map.get(request.options, :auth))
   end
 
   defp auth(request, nil), do: request
+
+  defp auth(request, authorization) when is_binary(authorization) do
+    put_new_header(request, "authorization", authorization)
+  end
 
   defp auth(request, {:bearer, token}) when is_binary(token) do
     put_new_header(request, "authorization", "Bearer #{token}")
