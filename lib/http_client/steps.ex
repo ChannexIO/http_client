@@ -21,6 +21,7 @@ defmodule HTTPClient.Steps do
     |> Request.prepend_request_step(&__MODULE__.log_request_start/1)
     |> Request.prepend_adapter_step()
     |> Request.prepend_response_step(&__MODULE__.downcase_headers/1)
+    |> Request.prepend_response_step(&__MODULE__.follow_redirects/1)
     |> Request.prepend_response_step(&__MODULE__.decompress_body/1)
     |> Request.prepend_response_step(&__MODULE__.decode_body/1)
     |> Request.prepend_response_step(&__MODULE__.retry/1)
@@ -197,6 +198,108 @@ defmodule HTTPClient.Steps do
         [] -> nil
       end
     end
+  end
+
+  @doc """
+  Follows redirects.
+
+  The original request method may be changed to GET depending on the status code:
+
+  | Code          | Method handling    |
+  | ------------- | ------------------ |
+  | 301, 302, 303 | Changed to GET     |
+  | 307, 308      | Method not changed |
+
+  ## Request Options
+
+    * `:follow_redirects` - if set to `false`, disables automatic response redirects.
+      Defaults to `true`.
+
+    * `:location_trusted` - by default, authorization credentials are only sent
+      on redirects with the same host, scheme and port. If `:location_trusted` is set
+      to `true`, credentials will be sent to any host.
+
+    * `:max_redirects` - the maximum number of redirects, defaults to `10`.
+      If the limit is reached, an error is raised.
+
+    * `:redirect_log_level` - the log level to emit redirect logs at. Can also be set
+      to `false` to disable logging these messsages. Defaults to `:debug`.
+
+  """
+  def follow_redirects(request_response)
+
+  def follow_redirects({request, response}) when request.options.follow_redirects == false do
+    {request, response}
+  end
+
+  def follow_redirects({request, %{status: status} = response})
+      when status in [301, 302, 303, 307, 308] do
+    max_redirects = Map.get(request.options, :max_redirects, 10)
+    redirect_count = Request.get_private(request, :req_redirect_count, 0)
+
+    if redirect_count < max_redirects do
+      request =
+        request
+        |> build_redirect_request(response)
+        |> Request.put_private(:req_redirect_count, redirect_count + 1)
+
+      {_, result} = Request.run(request)
+      {Request.halt(request), result}
+    else
+      raise "too many redirects (#{max_redirects})"
+    end
+  end
+
+  def follow_redirects(other) do
+    other
+  end
+
+  defp build_redirect_request(request, response) do
+    location = get_header(response.headers, "location")
+    log_level = Map.get(request.options, :redirect_log_level, :debug)
+    log_redirect(log_level, location)
+    location_trusted = Map.get(request.options, :location_trusted)
+    location_url = URI.merge(request.url, URI.parse(location))
+
+    request
+    |> remove_params()
+    |> remove_credentials_if_untrusted(location_trusted, location_url)
+    |> put_redirect_request_method(response.status)
+    |> put_redirect_location(location_url)
+  end
+
+  defp log_redirect(false, _location), do: :ok
+
+  defp log_redirect(level, location) do
+    Logger.log(level, ["follow_redirects: redirecting to ", location])
+  end
+
+  defp put_redirect_location(request, location_url) do
+    put_in(request.url, location_url)
+  end
+
+  defp put_redirect_request_method(request, status) when status in 307..308, do: request
+  defp put_redirect_request_method(request, _), do: %{request | method: :get}
+
+  defp remove_credentials_if_untrusted(request, true, _), do: request
+
+  defp remove_credentials_if_untrusted(request, _, location_url) do
+    if {location_url.host, location_url.scheme, location_url.port} ==
+         {request.url.host, request.url.scheme, request.url.port} do
+      request
+    else
+      remove_credentials(request)
+    end
+  end
+
+  defp remove_credentials(request) do
+    headers = List.keydelete(request.headers, "authorization", 0)
+    request = update_in(request.options, &Map.delete(&1, :auth))
+    %{request | headers: headers}
+  end
+
+  defp remove_params(request) do
+    update_in(request.options, &Map.delete(&1, :params))
   end
 
   @doc """
