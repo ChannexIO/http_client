@@ -4,7 +4,10 @@ defmodule HTTPClient.Application do
   use Application
 
   def start(_type, _args) do
-    children = [] ++ HTTPClient.Adapters.Finch.Config.children()
+    children = [
+      {Finch, name: HTTPClient.Finch},
+      {DynamicSupervisor, strategy: :one_for_one, name: HTTPClient.FinchSupervisor}
+    ]
 
     opts = [strategy: :one_for_one, name: HTTPClient.Supervisor]
     Supervisor.start_link(children, opts)
