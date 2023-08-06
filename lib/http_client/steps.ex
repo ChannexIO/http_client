@@ -480,15 +480,18 @@ defmodule HTTPClient.Steps do
   defp get_options(options, key, default), do: options[key] || default
 
   defp get_content_encoding_header(headers) do
-    if value = get_header(headers, "content-encoding") do
-      value
-      |> String.downcase()
-      |> String.split(",", trim: true)
-      |> Stream.map(&String.trim/1)
-      |> Enum.reverse()
-    else
-      []
-    end
+    headers
+    |> Enum.flat_map(fn {name, value} ->
+      if String.downcase(name) == "content-encoding" do
+        value
+        |> String.downcase()
+        |> String.split(",", trim: true)
+        |> Stream.map(&String.trim/1)
+      else
+        []
+      end
+    end)
+    |> Enum.reverse()
   end
 
   defp get_headers(headers, keys) when is_list(keys) do
