@@ -403,17 +403,20 @@ defmodule HTTPClient.Steps do
     end
   end
 
-  defp retry_safe(request, response) do
+  defp retry_safe(request, response_or_exception) do
     if request.method in [:get, :head] do
-      case response do
+      case response_or_exception do
         %Response{status: status} when status in [408, 429] or status in 500..599 ->
-          retry(request, response)
+          retry(request, response_or_exception)
 
         %Response{} ->
-          {request, response}
+          {request, response_or_exception}
+
+        exception when is_exception(exception) ->
+          retry(request, response_or_exception)
       end
     else
-      {request, response}
+      {request, response_or_exception}
     end
   end
 
@@ -545,7 +548,7 @@ defmodule HTTPClient.Steps do
       end
 
     case response_or_exception do
-      %{__exception__: true} = exception ->
+      exception when is_exception(exception) ->
         Logger.error(["retry: got exception. ", message])
         Logger.error(["** (#{inspect(exception.__struct__)}) ", Exception.message(exception)])
 
