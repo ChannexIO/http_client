@@ -337,9 +337,11 @@ defmodule HTTPClient.Steps do
         %{delay: delay, retry?: true, type: :retry_after}
 
       :exponent ->
+        max_retries = get_options(retry_options, :max_retries, 30)
         max_cap = get_options(retry_options, :max_cap, :timer.minutes(20))
         delays = cap(exponential_backoff(), max_cap)
-        %{delay: Enum.at(delays, retry_count), retry?: true, type: :exponent}
+        retry = retry_count < max_retries
+        %{delay: Enum.at(delays, retry_count), retry?: retry, type: :exponent}
 
       :x_rate_limit ->
         delay = check_x_rate_limit(response_or_exception)
@@ -419,7 +421,7 @@ defmodule HTTPClient.Steps do
           "Will retry after #{retry_params.delay}ms"
 
         %{type: :exponent} ->
-          "Will retry in #{retry_params.delay}ms"
+          "Will retry in #{retry_params.delay}ms, retry count: #{retry_count}"
 
         %{type: :x_rate_limit} ->
           "Will retry after #{retry_params.delay}ms"
