@@ -59,7 +59,13 @@ defmodule HTTPClient.Adapters.Finch do
 
   defp get_client_name(proxy) when is_map(proxy) do
     name = custom_pool_name(proxy)
-    pools = %{default: [conn_opts: [proxy: compose_proxy(proxy)]]}
+
+    pools = %{
+      default: [
+        conn_opts: [proxy: compose_proxy(proxy), proxy_headers: compose_proxy_headers(proxy)]
+      ]
+    }
+
     child_spec = {Finch, name: name, pools: pools}
 
     case DynamicSupervisor.start_child(HTTPClient.FinchSupervisor, child_spec) do
@@ -67,6 +73,12 @@ defmodule HTTPClient.Adapters.Finch do
       {:error, {:already_started, _}} -> name
     end
   end
+
+  defp compose_proxy_headers(%{opts: opts}) do
+    Keyword.get(opts, :proxy_headers, [])
+  end
+
+  defp compose_proxy_headers(_), do: []
 
   defp compose_proxy(proxy) do
     {proxy.scheme, proxy.address, to_integer(proxy.port), proxy.opts}
