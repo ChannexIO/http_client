@@ -32,7 +32,8 @@ defmodule HTTPClient.Adapters.Finch do
 
   @doc false
   def proxy(request) do
-    Request.put_private(request, :finch_name, get_client())
+    tls_versions = Map.get(request.options, :tls_versions, [:"tlsv1.2", :"tlsv1.3"])
+    Request.put_private(request, :finch_name, get_client(tls_versions))
   end
 
   defp prepare_options(options) do
@@ -43,26 +44,30 @@ defmodule HTTPClient.Adapters.Finch do
   defp normalize_option({:recv_timeout, value}), do: {:receive_timeout, value}
   defp normalize_option({key, value}), do: {key, value}
 
-  defp get_client() do
+  defp get_client(tls_versions) do
     :http_client
     |> Application.get_env(:proxy)
-    |> get_client_name()
+    |> get_client_name(tls_versions)
   end
 
-  defp get_client_name(nil), do: HTTPClient.Finch
+  defp get_client_name(nil, _tls_versions), do: HTTPClient.Finch
 
-  defp get_client_name(proxies) when is_list(proxies) do
+  defp get_client_name(proxies, tls_versions) when is_list(proxies) do
     proxies
     |> Enum.random()
-    |> get_client_name()
+    |> get_client_name(tls_versions)
   end
 
-  defp get_client_name(proxy) when is_map(proxy) do
+  defp get_client_name(proxy, tls_versions) when is_map(proxy) do
     name = custom_pool_name(proxy)
 
     pools = %{
       default: [
-        conn_opts: [proxy: compose_proxy(proxy), proxy_headers: compose_proxy_headers(proxy)]
+        conn_opts: [
+          proxy: compose_proxy(proxy),
+          proxy_headers: compose_proxy_headers(proxy),
+          transport_opts: [versions: tls_versions]
+        ]
       ]
     }
 

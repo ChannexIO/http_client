@@ -30,7 +30,7 @@ defmodule HTTPClient.MixProject do
     [
       {:nimble_options, "~> 0.4"},
       {:httpoison, "~> 2.1"},
-      {:finch, "~> 0.16"},
+      {:finch, "~> 0.19"},
       {:telemetry, "~> 1.0"},
       {:jason, "~> 1.4"},
       {:mime, "~> 2.0"},
