@@ -15,7 +15,8 @@ defmodule HTTPClient.Adapters.HTTPoison do
   Performs the request using `HTTPoison`.
   """
   def perform_request(request) do
-    options = Map.to_list(request.options)
+    {_logger_context, options} = Map.pop(request.options, :logger_context)
+    options = Map.to_list(options)
 
     case HTTPoison.request(request.method, request.url, request.body, request.headers, options) do
       {:ok, %{status_code: status, body: body, headers: headers}} ->

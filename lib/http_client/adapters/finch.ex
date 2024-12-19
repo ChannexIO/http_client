@@ -15,29 +15,59 @@ defmodule HTTPClient.Adapters.Finch do
   Performs the request using `Finch`.
   """
   def perform_request(request) do
-    options = prepare_options(request.options)
+    {request, options} = prepare_options(request)
 
-    request.method
-    |> Finch.build(request.url, request.headers, request.body)
-    |> Finch.request(request.private.finch_name, options)
-    |> case do
-      {:ok, %{status: status, body: body, headers: headers}} ->
-        {request,
-         Response.new(status: status, body: body, headers: headers, request_url: request.url)}
+    maybe_log_operation(request, "started")
 
-      {:error, exception} ->
+    try do
+      request.method
+      |> Finch.build(request.url, request.headers, request.body)
+      |> Finch.request(request.private.finch_name, options)
+      |> case do
+        {:ok, %{status: status, body: body, headers: headers}} ->
+          maybe_log_operation(request, "done")
+
+          {request,
+           Response.new(status: status, body: body, headers: headers, request_url: request.url)}
+
+        {:error, exception} ->
+          log_operation(request, Exception.format(:error, exception))
+          {request, exception}
+      end
+    rescue
+      exception ->
+        log_operation(request, Exception.format(:error, exception))
         {request, exception}
     end
+  end
+
+  def maybe_log_operation(request, message) do
+    with true <- log_operation?() do
+      log_operation(request, message)
+    end
+  end
+
+  def log_operation(request, message) do
+    IO.inspect("proxy: #{Jason.encode!(request.private.proxy)}. #{message}",
+      label: "#{request.private.finch_name} #{request.private.logger_context}"
+    )
   end
 
   @doc false
   def proxy(request) do
     tls_versions = Map.get(request.options, :tls_versions, [:"tlsv1.2", :"tlsv1.3"])
-    Request.put_private(request, :finch_name, get_client(tls_versions))
+    {finch_name, used_proxy} = get_client(tls_versions)
+
+    request
+    |> Request.put_private(:finch_name, finch_name)
+    |> Request.put_private(:proxy, used_proxy)
   end
 
-  defp prepare_options(options) do
-    Enum.map(options, &normalize_option/1)
+  defp prepare_options(request) do
+    {logger_context, options} = Map.pop(request.options, :logger_context)
+
+    {Request.put_private(request, :logger_context, logger_context),
+     Enum.map(options, &normalize_option/1)}
   end
 
   defp normalize_option({:timeout, value}), do: {:pool_timeout, value}
@@ -50,7 +80,7 @@ defmodule HTTPClient.Adapters.Finch do
     |> get_client_name(tls_versions)
   end
 
-  defp get_client_name(nil, _tls_versions), do: HTTPClient.Finch
+  defp get_client_name(nil, _tls_versions), do: {HTTPClient.Finch, {}}
 
   defp get_client_name(proxies, tls_versions) when is_list(proxies) do
     proxies
@@ -60,11 +90,12 @@ defmodule HTTPClient.Adapters.Finch do
 
   defp get_client_name(proxy, tls_versions) when is_map(proxy) do
     name = custom_pool_name(proxy)
+    composed_proxy = compose_proxy(proxy)
 
     pools = %{
       default: [
         conn_opts: [
-          proxy: compose_proxy(proxy),
+          proxy: composed_proxy,
           proxy_headers: compose_proxy_headers(proxy),
           transport_opts: [versions: tls_versions]
         ]
@@ -74,8 +105,8 @@ defmodule HTTPClient.Adapters.Finch do
     child_spec = {Finch, name: name, pools: pools}
 
     case DynamicSupervisor.start_child(HTTPClient.FinchSupervisor, child_spec) do
-      {:ok, _} -> name
-      {:error, {:already_started, _}} -> name
+      {:ok, _} -> {name, composed_proxy}
+      {:error, {:already_started, _}} -> {name, composed_proxy}
     end
   end
 
@@ -100,5 +131,9 @@ defmodule HTTPClient.Adapters.Finch do
       |> Base.url_encode64(padding: false)
 
     Module.concat(HTTPClient.FinchSupervisor, "Pool_#{name}")
+  end
+
+  defp log_operation? do
+    Application.get_env(:http_client, :log_operation, false)
   end
 end
