@@ -115,6 +115,6 @@ defmodule HTTPClient.Adapters.Finch do
   end
 
   defp get_client_with_proxy(proxies) when is_list(proxies) do
-    :"FinchHTTPClientWithProxy_#{Enum.random(0..length(proxies) - 1)}"
+    :"FinchHTTPClientWithProxy_#{Enum.random(0..(length(proxies) - 1))}"
   end
 end
