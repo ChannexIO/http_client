@@ -7,13 +7,13 @@ jobs:
     name: Format and compile with warnings as errors
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install OTP and Elixir
         uses: erlef/setup-beam@v1
         with:
-          otp-version: 24.1
-          elixir-version: 1.12.3
+          otp-version: 27.3
+          elixir-version: 1.18.3
 
       - name: Install dependencies
         run: mix deps.get
@@ -31,12 +31,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - erlang: 24.1
-            elixir: 1.12.3
-          - erlang: 24.1
-            elixir: 1.13.0
+          - erlang: 27.3
+            elixir: 1.18.3
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Install OTP and Elixir
         uses: erlef/setup-elixir@v1
