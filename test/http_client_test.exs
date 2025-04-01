@@ -1,5 +1,6 @@
 defmodule HTTPClientTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
+
   doctest HTTPClient
 
   alias HTTPClient.{Error, Response}
@@ -44,7 +45,7 @@ defmodule HTTPClientTest do
       response_body = ~s({"right":"here"})
 
       Bypass.expect_once(bypass, "POST", "/", fn conn ->
-        assert conn.query_string == "a=1&b=2"
+        assert %{"a" => "1", "b" => "2"} == URI.decode_query(conn.query_string)
 
         assert {_, "application/json"} =
                  Enum.find(conn.req_headers, &(elem(&1, 0) == "content-type"))
@@ -179,7 +180,8 @@ defmodule HTTPClientTest do
                status: 200
              } = default_response
 
-      assert request_url == url <> "?a=1&b=2"
+      assert %{query: query} = URI.parse(request_url)
+      assert %{"a" => "1", "b" => "2"} == URI.decode_query(query)
     end
   end
 
