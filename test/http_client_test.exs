@@ -1,5 +1,6 @@
 defmodule HTTPClientTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: true
+
   doctest HTTPClient
 
   alias HTTPClient.{Error, Response}
@@ -44,7 +45,7 @@ defmodule HTTPClientTest do
       response_body = ~s({"right":"here"})
 
       Bypass.expect_once(bypass, "POST", "/", fn conn ->
-        assert conn.query_string == "a=1&b=2"
+        assert %{"a" => "1", "b" => "2"} == URI.decode_query(conn.query_string)
 
         assert {_, "application/json"} =
                  Enum.find(conn.req_headers, &(elem(&1, 0) == "content-type"))
@@ -116,7 +117,7 @@ defmodule HTTPClientTest do
                    ]
 
             assert meta.method == :get
-            assert meta.url == endpoint(bypass) <> "?a=1&b=2"
+            assert URI.new!(meta.url) == URI.new!(endpoint(bypass, "/?a=1&b=2"))
             send(parent, {ref, :start})
 
           [:http_client, :request, :stop] ->
@@ -125,7 +126,7 @@ defmodule HTTPClientTest do
             assert is_list(meta.headers)
             assert meta.method == :get
             assert meta.status_code == 200
-            assert meta.url == endpoint(bypass) <> "?a=1&b=2"
+            assert URI.new!(meta.url) == URI.new!(endpoint(bypass, "/?a=1&b=2"))
             send(parent, {ref, :stop})
 
           _ ->
@@ -175,7 +176,8 @@ defmodule HTTPClientTest do
                status: 200
              } = default_response
 
-      assert to_string(request_url) == url <> "?a=1&b=2"
+      assert %{query: query} = URI.parse(request_url)
+      assert %{"a" => "1", "b" => "2"} == URI.decode_query(query)
     end
   end
 

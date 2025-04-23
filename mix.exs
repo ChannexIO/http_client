@@ -28,16 +28,16 @@ defmodule HTTPClient.MixProject do
 
   defp deps do
     [
-      {:nimble_options, "~> 0.4"},
-      {:httpoison, "~> 2.1"},
-      {:finch, "~> 0.16"},
-      {:telemetry, "~> 1.0"},
+      {:nimble_options, "~> 1.1"},
+      {:httpoison, "~> 2.2"},
+      {:finch, "~> 0.19"},
+      {:telemetry, "~> 1.3"},
       {:jason, "~> 1.4"},
       {:mime, "~> 2.0"},
-      {:plug, "~> 1.14", only: :test, override: true},
-      {:bandit, "~> 1.0-pre", only: :test, override: true},
+      {:plug, "~> 1.17", only: :test},
+      {:bandit, "~> 1.6", only: :test},
       {:bypass, "~> 2.1", only: :test},
-      {:ex_doc, "~> 0.30", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 
