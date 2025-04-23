@@ -4,7 +4,7 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     env:
       MIX_ENV: test
     strategy:
@@ -12,13 +12,13 @@ jobs:
       matrix:
         include:
           - pair:
-              elixir: "1.13"
-              otp: "24.3.4.10"
+              elixir: 1.15.x
+              otp: 26.x
           - pair:
-              elixir: "1.15"
-              otp: "26.0"
+              elixir: 1.18.x
+              otp: 27.x
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install OTP and Elixir
         uses: erlef/setup-beam@v1
@@ -27,7 +27,7 @@ jobs:
           elixir-version: ${{matrix.pair.elixir}}
 
       - name: Cache dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: deps
           key: mix-deps-${{ hashFiles('**/mix.lock') }}
