@@ -2,14 +2,14 @@ defmodule HTTPClient.MixProject do
   use Mix.Project
 
   @name "HTTPClient"
-  @version "0.3.8"
+  @version "0.3.9"
   @repo_url "https://github.com/ChannexIO/http_client"
 
   def project do
     [
       app: :http_client,
       version: @version,
-      elixir: "~> 1.12",
+      elixir: "~> 1.15",
       description: "Facade for HTTP client.",
       docs: docs(),
       start_permanent: Mix.env() == :prod,
