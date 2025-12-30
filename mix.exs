@@ -29,14 +29,14 @@ defmodule HTTPClient.MixProject do
   defp deps do
     [
       {:nimble_options, "~> 1.1"},
-      {:httpoison, "~> 2.2"},
-      {:finch, "~> 0.19"},
+      {:httpoison, "~> 2.3"},
+      {:finch, "~> 0.20"},
       {:telemetry, "~> 1.3"},
       {:jason, "~> 1.4"},
-      {:plug, "~> 1.17", only: :test, override: true},
+      {:plug, "~> 1.19", only: :test, override: true},
       {:plug_cowboy, "~> 2.7", only: :test, override: true},
       {:bypass, "~> 2.1", only: :test},
-      {:ex_doc, "~> 0.37", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.39", only: :dev, runtime: false}
     ]
   end
 
