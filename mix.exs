@@ -2,7 +2,7 @@ defmodule HTTPClient.MixProject do
   use Mix.Project
 
   @name "HTTPClient"
-  @version "0.3.9"
+  @version "0.3.10"
   @repo_url "https://github.com/ChannexIO/http_client"
 
   def project do
