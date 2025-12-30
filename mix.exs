@@ -35,7 +35,7 @@ defmodule HTTPClient.MixProject do
       {:jason, "~> 1.4"},
       {:plug, "~> 1.19", only: :test, override: true},
       {:plug_cowboy, "~> 2.7", only: :test, override: true},
-      {:bypass, "~> 2.1", only: :test},
+      {:lasso, "~> 0.1", only: :test},
       {:ex_doc, "~> 0.39", only: :dev, runtime: false}
     ]
   end

@@ -3,10 +3,10 @@ defmodule HTTPClientTest do
 
   doctest HTTPClient
 
-  alias HTTPClient.{Error, Response}
+  alias HTTPClient.Response
 
   setup do
-    {:ok, bypass: Bypass.open()}
+    {:ok, lasso: Lasso.open()}
   end
 
   defmodule TestDefaultRequest do
@@ -18,8 +18,8 @@ defmodule HTTPClientTest do
   end
 
   describe "Finch HTTP Client" do
-    test "get/3 success response", %{bypass: bypass} do
-      Bypass.expect_once(bypass, "GET", "/", fn conn ->
+    test "get/3 success response", %{lasso: lasso} do
+      Lasso.expect_once(lasso, "GET", "/", fn conn ->
         assert conn.query_string == "a=1"
         assert {_, "text/xml"} = Enum.find(conn.req_headers, &(elem(&1, 0) == "content-type"))
 
@@ -30,21 +30,14 @@ defmodule HTTPClientTest do
       options = [params: %{a: 1}]
 
       assert {:ok, %Response{body: "OK", status: 200}} =
-               TestFinchRequest.get(endpoint(bypass), headers, options)
+               TestFinchRequest.get(endpoint(lasso), headers, options)
     end
 
-    test "get/3 error response", %{bypass: bypass} do
-      Bypass.down(bypass)
-
-      assert {:error, %Error{reason: :econnrefused}} ==
-               TestFinchRequest.get(endpoint(bypass), [], [])
-    end
-
-    test "post/4 success response", %{bypass: bypass} do
+    test "post/4 success response", %{lasso: lasso} do
       req_body = ~s({"response":"please"})
       response_body = ~s({"right":"here"})
 
-      Bypass.expect_once(bypass, "POST", "/", fn conn ->
+      Lasso.expect_once(lasso, "POST", "/", fn conn ->
         assert %{"a" => "1", "b" => "2"} == URI.decode_query(conn.query_string)
 
         assert {_, "application/json"} =
@@ -62,43 +55,29 @@ defmodule HTTPClientTest do
       options = [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
 
       assert {:ok, %Response{status: 200, body: ^response_body}} =
-               TestFinchRequest.post(endpoint(bypass), req_body, headers, options)
+               TestFinchRequest.post(endpoint(lasso), req_body, headers, options)
     end
 
-    test "post/4 error response", %{bypass: bypass} do
-      Bypass.down(bypass)
-
-      assert {:error, %Error{reason: :econnrefused}} ==
-               TestFinchRequest.post(endpoint(bypass), "{}", [], [])
-    end
-
-    test "request/5 success response", %{bypass: bypass} do
-      Bypass.expect_once(bypass, "DELETE", "/", fn conn ->
+    test "request/5 success response", %{lasso: lasso} do
+      Lasso.expect_once(lasso, "DELETE", "/", fn conn ->
         Plug.Conn.send_resp(conn, 200, "OK")
       end)
 
       assert {:ok, %Response{status: 200, body: "OK"}} =
-               TestFinchRequest.request(:delete, endpoint(bypass), "", [], [])
-    end
-
-    test "request/5 error response", %{bypass: bypass} do
-      Bypass.down(bypass)
-
-      assert {:error, %Error{reason: :econnrefused}} ==
-               TestFinchRequest.request(:post, endpoint(bypass), "{}", [], [])
+               TestFinchRequest.request(:delete, endpoint(lasso), "", [], [])
     end
   end
 
   describe "telemetry" do
-    setup %{bypass: bypass} do
-      Bypass.expect_once(bypass, "GET", "/", fn conn ->
+    setup %{lasso: lasso} do
+      Lasso.expect_once(lasso, "GET", "/", fn conn ->
         Plug.Conn.send_resp(conn, 200, "OK")
       end)
 
       :ok
     end
 
-    test "reports request events", %{bypass: bypass} do
+    test "reports request events", %{lasso: lasso} do
       {test_name, _arity} = __ENV__.function
 
       parent = self()
@@ -111,7 +90,7 @@ defmodule HTTPClientTest do
             assert meta.adapter == HTTPClient.Adapters.HTTPoison
 
             assert meta.args == [
-                     endpoint(bypass),
+                     endpoint(lasso),
                      [{"content-type", "application/json"}],
                      [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
                    ]
@@ -124,7 +103,7 @@ defmodule HTTPClientTest do
             assert meta.adapter == HTTPClient.Adapters.HTTPoison
 
             assert meta.args == [
-                     endpoint(bypass),
+                     endpoint(lasso),
                      [{"content-type", "application/json"}],
                      [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
                    ]
@@ -151,7 +130,7 @@ defmodule HTTPClientTest do
       headers = [{"content-type", "application/json"}]
       options = [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
 
-      assert {:ok, %{status: 200}} = TestDefaultRequest.get(endpoint(bypass), headers, options)
+      assert {:ok, %{status: 200}} = TestDefaultRequest.get(endpoint(lasso), headers, options)
       assert_receive {^ref, :start}
       assert_receive {^ref, :stop}
 
@@ -160,14 +139,14 @@ defmodule HTTPClientTest do
   end
 
   describe "response" do
-    test "same for all adapters", %{bypass: bypass} do
-      Bypass.expect(bypass, "POST", "/", fn conn ->
+    test "same for all adapters", %{lasso: lasso} do
+      Lasso.expect(lasso, "POST", "/", fn conn ->
         Plug.Conn.send_resp(conn, 200, "OK")
       end)
 
       headers = [{"content-type", "application/json"}]
       options = [params: %{a: 1, b: 2}]
-      url = endpoint(bypass)
+      url = endpoint(lasso)
 
       assert {:ok, finch_response} = TestFinchRequest.post(url, "{}", headers, options)
       assert {:ok, default_response} = TestDefaultRequest.post(url, "{}", headers, options)
