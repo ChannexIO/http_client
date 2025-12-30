@@ -9,7 +9,7 @@ defmodule HTTPClient.MixProject do
     [
       app: :http_client,
       version: @version,
-      elixir: "~> 1.15",
+      elixir: "~> 1.16",
       description: "Facade for HTTP client.",
       docs: docs(),
       start_permanent: Mix.env() == :prod,
