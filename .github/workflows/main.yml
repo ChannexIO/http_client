@@ -32,9 +32,9 @@ jobs:
       matrix:
         include:
           - erlang: 26.x
-            elixir: 1.15.x
+            elixir: 1.16.x
           - erlang: 27.x
-            elixir: 1.18.x
+            elixir: 1.19.x
     steps:
       - uses: actions/checkout@v4
 
