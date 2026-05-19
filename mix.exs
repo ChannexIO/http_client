@@ -30,13 +30,13 @@ defmodule HTTPClient.MixProject do
     [
       {:nimble_options, "~> 1.1"},
       {:httpoison, "~> 2.3"},
-      {:finch, "~> 0.20"},
+      {:finch, "~> 0.22"},
       {:telemetry, "~> 1.3"},
       {:jason, "~> 1.4"},
       {:plug, "~> 1.19", only: :test, override: true},
-      {:plug_cowboy, "~> 2.7", only: :test, override: true},
+      {:plug_cowboy, "~> 2.8", only: :test, override: true},
       {:lasso, "~> 0.1", only: :test},
-      {:ex_doc, "~> 0.39", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end
 
