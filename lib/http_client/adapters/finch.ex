@@ -67,12 +67,12 @@ defmodule HTTPClient.Adapters.Finch do
     {logger_context, options} = Map.pop(request.options, :logger_context)
 
     {Request.put_private(request, :logger_context, logger_context),
-     Enum.map(options, &normalize_option/1)}
+     Enum.map(options, &normalize_option/1) |> Enum.reject(&is_nil/1)}
   end
 
   defp normalize_option({:timeout, value}), do: {:pool_timeout, value}
   defp normalize_option({:recv_timeout, value}), do: {:receive_timeout, value}
-  defp normalize_option({key, value}), do: {key, value}
+  defp normalize_option(_), do: nil
 
   defp get_client(tls_versions) do
     :http_client
