@@ -36,7 +36,7 @@ defmodule HTTPClient.MixProject do
       {:mime, "~> 2.0"},
       {:plug, "~> 1.14", only: :test, override: true},
       {:bandit, "~> 1.0-pre", only: :test, override: true},
-      {:bypass, "~> 2.1", only: :test},
+      {:lasso, "~> 0.1", only: :test},
       {:ex_doc, "~> 0.30", only: :dev, runtime: false}
     ]
   end

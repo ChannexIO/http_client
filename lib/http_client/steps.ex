@@ -11,11 +11,13 @@ defmodule HTTPClient.Steps do
   Adds default steps.
   """
   def put_default_steps(request) do
+    adapter = request.adapter
+
     request
     |> Request.prepend_request_step(&__MODULE__.encode_headers/1)
     |> Request.prepend_request_step(&__MODULE__.put_default_headers/1)
     |> Request.prepend_request_step(&__MODULE__.encode_body/1)
-    |> Request.prepend_request_step(&request.adapter.proxy/1)
+    |> Request.prepend_request_step(&adapter.proxy/1)
     |> Request.prepend_request_step(&__MODULE__.auth/1)
     |> Request.prepend_request_step(&__MODULE__.put_params/1)
     |> Request.prepend_request_step(&__MODULE__.log_request_start/1)

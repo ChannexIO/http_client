@@ -83,7 +83,8 @@ defmodule HTTPClient.Request do
   Prepends adapter step to request steps.
   """
   def prepend_adapter_step(request) do
-    prepend_request_step(request, &request.adapter.perform_request/1)
+    adapter = request.adapter
+    prepend_request_step(request, &adapter.perform_request/1)
   end
 
   @doc """
@@ -154,7 +155,9 @@ defmodule HTTPClient.Request do
   end
 
   defp run_request([], request) do
-    case run_step(&request.adapter.perform_request/1, request) do
+    adapter = request.adapter
+
+    case run_step(&adapter.perform_request/1, request) do
       {request, %Response{} = response} ->
         run_response(request, response)
 

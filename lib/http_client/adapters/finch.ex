@@ -48,7 +48,7 @@ defmodule HTTPClient.Adapters.Finch do
   end
 
   def log_operation(request, message) do
-    IO.inspect("proxy: #{Jason.encode!(request.private.proxy)}. #{message}",
+    IO.inspect("proxy: #{inspect(request.private.proxy)}. #{message}",
       label: "#{request.private.finch_name} #{request.private.logger_context}"
     )
   end
@@ -113,8 +113,6 @@ defmodule HTTPClient.Adapters.Finch do
   defp compose_proxy_headers(%{opts: opts}) do
     Keyword.get(opts, :proxy_headers, [])
   end
-
-  defp compose_proxy_headers(_), do: []
 
   defp compose_proxy(proxy) do
     {proxy.scheme, proxy.address, to_integer(proxy.port), proxy.opts}
