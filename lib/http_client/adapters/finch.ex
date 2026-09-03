@@ -27,8 +27,12 @@ defmodule HTTPClient.Adapters.Finch do
         {:ok, %{status: status, body: body, headers: headers}} ->
           maybe_log_operation(request, "done")
 
-          {request,
-           Response.new(status: status, body: body, headers: headers, request_url: request.url)}
+          response =
+            [status: status, body: body, headers: headers, request_url: request.url]
+            |> Response.new()
+            |> Response.put_private(:proxy, proxy_info(request.private.proxy))
+
+          {request, response}
 
         {:error, exception} ->
           log_operation(request, Exception.format(:error, exception))
@@ -56,7 +60,7 @@ defmodule HTTPClient.Adapters.Finch do
   @doc false
   def proxy(request) do
     tls_versions = Map.get(request.options, :tls_versions, [:"tlsv1.2", :"tlsv1.3"])
-    {finch_name, used_proxy} = get_client(tls_versions)
+    {finch_name, used_proxy} = get_client(request.options, tls_versions)
 
     request
     |> Request.put_private(:finch_name, finch_name)
@@ -74,13 +78,19 @@ defmodule HTTPClient.Adapters.Finch do
   defp normalize_option({:recv_timeout, value}), do: {:receive_timeout, value}
   defp normalize_option(_), do: nil
 
-  defp get_client(tls_versions) do
-    :http_client
-    |> Application.get_env(:proxy)
-    |> get_client_name(tls_versions)
+  # A per-request `:proxy` option (a proxy map, a list of them, or nil for a
+  # direct connection) overrides the globally configured `:proxy` list. When the
+  # option is absent the global config is used, preserving the default behaviour.
+  defp get_client(options, tls_versions) do
+    case Map.fetch(options, :proxy) do
+      {:ok, proxy} -> get_client_name(proxy, tls_versions)
+      :error -> :http_client |> Application.get_env(:proxy) |> get_client_name(tls_versions)
+    end
   end
 
   defp get_client_name(nil, _tls_versions), do: {HTTPClient.Finch, {}}
+
+  defp get_client_name([], _tls_versions), do: {HTTPClient.Finch, {}}
 
   defp get_client_name(proxies, tls_versions) when is_list(proxies) do
     proxies
@@ -117,6 +127,11 @@ defmodule HTTPClient.Adapters.Finch do
   defp compose_proxy(proxy) do
     {proxy.scheme, proxy.address, to_integer(proxy.port), proxy.opts}
   end
+
+  # Readable proxy identifier for response tracking; nil for a direct connection.
+  # Excludes proxy opts so credentials in proxy headers are never surfaced.
+  defp proxy_info({scheme, address, port, _opts}), do: "#{scheme}://#{address}:#{port}"
+  defp proxy_info(_used_proxy), do: nil
 
   defp to_integer(term) when is_integer(term), do: term
   defp to_integer(term) when is_binary(term), do: String.to_integer(term)

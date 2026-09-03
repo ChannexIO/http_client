@@ -67,6 +67,42 @@ defmodule HTTPClientTest do
     end
   end
 
+  describe "proxy" do
+    alias HTTPClient.Adapters.Finch, as: FinchAdapter
+    alias HTTPClient.Request
+
+    test "finch uses a per-request :proxy option over global config" do
+      proxy = %{scheme: :http, address: "127.0.0.1", port: 8080, opts: []}
+
+      request =
+        FinchAdapter
+        |> Request.build(:get, "http://example.com", options: [proxy: proxy])
+        |> FinchAdapter.proxy()
+
+      assert request.private.proxy == {:http, "127.0.0.1", 8080, []}
+      refute request.private.finch_name == HTTPClient.Finch
+    end
+
+    test "finch treats :proxy nil/[] as a direct connection" do
+      for value <- [nil, []] do
+        request =
+          FinchAdapter
+          |> Request.build(:get, "http://example.com", options: [proxy: value])
+          |> FinchAdapter.proxy()
+
+        assert request.private.proxy == {}
+        assert request.private.finch_name == HTTPClient.Finch
+      end
+    end
+
+    test "response records the used proxy (nil for a direct connection)", %{lasso: lasso} do
+      Lasso.expect_once(lasso, "GET", "/", fn conn -> Plug.Conn.send_resp(conn, 200, "OK") end)
+
+      assert {:ok, %Response{private: %{proxy: nil}}} =
+               TestFinchRequest.get(endpoint(lasso), [], [])
+    end
+  end
+
   describe "telemetry" do
     setup %{lasso: lasso} do
       Lasso.expect_once(lasso, "GET", "/", fn conn ->
