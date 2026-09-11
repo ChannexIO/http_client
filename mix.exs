@@ -29,7 +29,7 @@ defmodule HTTPClient.MixProject do
   defp deps do
     [
       {:nimble_options, "~> 1.1"},
-      {:httpoison, "~> 2.3"},
+      {:httpoison, "~> 3.0"},
       {:finch, "~> 0.22"},
       {:telemetry, "~> 1.3"},
       {:jason, "~> 1.4"},
