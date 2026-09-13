@@ -13,8 +13,9 @@ defmodule HTTPClient.Telemetry do
 
     #### Metadata:
     * `:adapter` - The name of adapter impelementation.
-    * `:args` - The arguments passed in the request (url, headers, etc.).
+    * `:headers` - The headers passed in the request.
     * `:method` - The method used in the request.
+    * `:url` - The requested url.
 
   * `[:http_client, :request, :stop]` - Executed after a request is finished.
 
@@ -23,8 +24,9 @@ defmodule HTTPClient.Telemetry do
 
     #### Metadata:
     * `:adapter` - The name of adapter impelementation.
-    * `:args` - The arguments passed in the request (url, headers, etc.).
+    * `:headers` - The headers passed in the response.
     * `:method` - The method used in the request.
+    * `:url` - The requested url.
     * `:status_code` - This value is optional. The response status code.
     * `:error` - This value is optional. It includes any errors that occured while making the request.
   """

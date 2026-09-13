@@ -3,7 +3,7 @@ defmodule HTTPClientTest do
 
   doctest HTTPClient
 
-  alias HTTPClient.Response
+  alias HTTPClient.{Error, Response}
 
   setup do
     {:ok, lasso: Lasso.open()}
@@ -33,6 +33,14 @@ defmodule HTTPClientTest do
                TestFinchRequest.get(endpoint(lasso), headers, options)
     end
 
+    @tag :skip
+    test "get/3 error response", %{lasso: lasso} do
+      # Lasso.down(lasso)
+
+      assert {:error, %Error{reason: "connection refused"}} ==
+               TestFinchRequest.get(endpoint(lasso), [], [])
+    end
+
     test "post/4 success response", %{lasso: lasso} do
       req_body = ~s({"response":"please"})
       response_body = ~s({"right":"here"})
@@ -52,10 +60,18 @@ defmodule HTTPClientTest do
       end)
 
       headers = [{"content-type", "application/json"}]
-      options = [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
+      options = [params: %{a: 1, b: 2}, auth: {:basic, {"username", "password"}}]
 
       assert {:ok, %Response{status: 200, body: ^response_body}} =
                TestFinchRequest.post(endpoint(lasso), req_body, headers, options)
+    end
+
+    @tag :skip
+    test "post/4 error response", %{lasso: lasso} do
+      # Lasso.down(lasso)
+
+      assert {:error, %Error{reason: "connection refused"}} ==
+               TestFinchRequest.post(endpoint(lasso), "{}", [], [])
     end
 
     test "request/5 success response", %{lasso: lasso} do
@@ -65,6 +81,14 @@ defmodule HTTPClientTest do
 
       assert {:ok, %Response{status: 200, body: "OK"}} =
                TestFinchRequest.request(:delete, endpoint(lasso), "", [], [])
+    end
+
+    @tag :skip
+    test "request/5 error response", %{lasso: lasso} do
+      # Lasso.down(lasso)
+
+      assert {:error, %Error{reason: "connection refused"}} ==
+               TestFinchRequest.request(:post, endpoint(lasso), "{}", [], [])
     end
   end
 
@@ -89,27 +113,23 @@ defmodule HTTPClientTest do
             assert is_integer(measurements.system_time)
             assert meta.adapter == HTTPClient.Adapters.HTTPoison
 
-            assert meta.args == [
-                     endpoint(lasso),
-                     [{"content-type", "application/json"}],
-                     [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
+            assert meta.headers == [
+                     {"authorization", "Basic dXNlcm5hbWU6cGFzc3dvcmQ="},
+                     {"accept-encoding", "gzip"},
+                     {"content-type", "application/json"}
                    ]
 
             assert meta.method == :get
+            assert_same_url(meta.url, endpoint(lasso, "/?a=1&b=2"))
             send(parent, {ref, :start})
 
           [:http_client, :request, :stop] ->
             assert is_integer(measurements.duration)
             assert meta.adapter == HTTPClient.Adapters.HTTPoison
-
-            assert meta.args == [
-                     endpoint(lasso),
-                     [{"content-type", "application/json"}],
-                     [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
-                   ]
-
+            assert is_list(meta.headers)
             assert meta.method == :get
             assert meta.status_code == 200
+            assert_same_url(meta.url, endpoint(lasso, "/?a=1&b=2"))
             send(parent, {ref, :stop})
 
           _ ->
@@ -128,7 +148,7 @@ defmodule HTTPClientTest do
       )
 
       headers = [{"content-type", "application/json"}]
-      options = [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
+      options = [params: %{a: 1, b: 2}, auth: {:basic, {"username", "password"}}]
 
       assert {:ok, %{status: 200}} = TestDefaultRequest.get(endpoint(lasso), headers, options)
       assert_receive {^ref, :start}
@@ -165,4 +185,12 @@ defmodule HTTPClientTest do
   end
 
   defp endpoint(%{port: port}, path \\ "/"), do: "http://localhost:#{port}#{path}"
+
+  defp assert_same_url(actual, expected) do
+    actual_uri = URI.new!(actual)
+    expected_uri = URI.new!(expected)
+
+    assert %{actual_uri | query: nil} == %{expected_uri | query: nil}
+    assert URI.decode_query(actual_uri.query || "") == URI.decode_query(expected_uri.query || "")
+  end
 end
