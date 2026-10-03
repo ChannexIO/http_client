@@ -16,7 +16,7 @@ defmodule HTTPClient.Adapter do
   """
 
   alias HTTPClient.Adapters.{Finch, HTTPoison}
-  alias HTTPClient.{Error, Response, Telemetry}
+  alias HTTPClient.{Request, Steps}
   alias NimbleOptions.ValidationError
 
   @typedoc """
@@ -123,50 +123,39 @@ defmodule HTTPClient.Adapter do
 
   @doc false
   def request(adapter, method, url, body, headers, options) do
-    perform(adapter, :request, [method, url, body, headers, options])
+    perform(adapter, method, url, body: body, headers: headers, options: options)
   end
 
   @doc false
   def get(adapter, url, headers, options) do
-    perform(adapter, :get, [url, headers, options])
+    perform(adapter, :get, url, headers: headers, options: options)
   end
 
   @doc false
   def post(adapter, url, body, headers, options) do
-    perform(adapter, :post, [url, body, headers, options])
+    perform(adapter, :post, url, body: body, headers: headers, options: options)
   end
 
   @doc false
   def put(adapter, url, body, headers, options) do
-    perform(adapter, :put, [url, body, headers, options])
+    perform(adapter, :put, url, body: body, headers: headers, options: options)
   end
 
   @doc false
   def patch(adapter, url, body, headers, options) do
-    perform(adapter, :patch, [url, body, headers, options])
+    perform(adapter, :patch, url, body: body, headers: headers, options: options)
   end
 
   @doc false
   def delete(adapter, url, headers, options) do
-    perform(adapter, :delete, [url, headers, options])
+    perform(adapter, :delete, url, headers: headers, options: options)
   end
 
-  defp perform(adapter, method, args) do
-    metadata = %{adapter: adapter, args: args, method: method}
-    start_time = Telemetry.start(:request, metadata)
-
-    case apply(adapter, method, args) do
-      {:ok, %Response{status: status, headers: headers} = response} ->
-        metadata = Map.put(metadata, :status_code, status)
-        Telemetry.stop(:request, start_time, metadata)
-        headers = Enum.map(headers, fn {key, value} -> {String.downcase(key), value} end)
-        {:ok, %{response | headers: headers}}
-
-      {:error, %Error{reason: reason}} = error_response ->
-        metadata = Map.put(metadata, :error, reason)
-        Telemetry.stop(:request, start_time, metadata)
-        error_response
-    end
+  defp perform(adapter, method, url, options) do
+    adapter
+    |> Request.build(method, url, options)
+    |> Steps.put_default_steps()
+    |> Request.run()
   end
 
   defp adapter_mod(:finch), do: HTTPClient.Adapters.Finch
