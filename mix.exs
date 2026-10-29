@@ -35,7 +35,7 @@ defmodule HTTPClient.MixProject do
       {:jason, "~> 1.4"},
       {:plug, "~> 1.19", only: :test, override: true},
       {:plug_cowboy, "~> 2.8", only: :test, override: true},
-      {:lasso, "~> 0.1", only: :test},
+      {:ambush, github: "ChannexIO/ambush", tag: "v0.1.0", only: :test},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
     ]
   end

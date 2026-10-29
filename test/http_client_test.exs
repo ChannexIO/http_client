@@ -6,7 +6,7 @@ defmodule HTTPClientTest do
   alias HTTPClient.Response
 
   setup do
-    {:ok, lasso: Lasso.open()}
+    {:ok, ambush: Ambush.open()}
   end
 
   defmodule TestDefaultRequest do
@@ -18,8 +18,8 @@ defmodule HTTPClientTest do
   end
 
   describe "Finch HTTP Client" do
-    test "get/3 success response", %{lasso: lasso} do
-      Lasso.expect_once(lasso, "GET", "/", fn conn ->
+    test "get/3 success response", %{ambush: ambush} do
+      Ambush.expect_once(ambush, "GET", "/", fn conn ->
         assert conn.query_string == "a=1"
         assert {_, "text/xml"} = Enum.find(conn.req_headers, &(elem(&1, 0) == "content-type"))
 
@@ -30,14 +30,14 @@ defmodule HTTPClientTest do
       options = [params: %{a: 1}]
 
       assert {:ok, %Response{body: "OK", status: 200}} =
-               TestFinchRequest.get(endpoint(lasso), headers, options)
+               TestFinchRequest.get(endpoint(ambush), headers, options)
     end
 
-    test "post/4 success response", %{lasso: lasso} do
+    test "post/4 success response", %{ambush: ambush} do
       req_body = ~s({"response":"please"})
       response_body = ~s({"right":"here"})
 
-      Lasso.expect_once(lasso, "POST", "/", fn conn ->
+      Ambush.expect_once(ambush, "POST", "/", fn conn ->
         assert %{"a" => "1", "b" => "2"} == URI.decode_query(conn.query_string)
 
         assert {_, "application/json"} =
@@ -55,29 +55,29 @@ defmodule HTTPClientTest do
       options = [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
 
       assert {:ok, %Response{status: 200, body: ^response_body}} =
-               TestFinchRequest.post(endpoint(lasso), req_body, headers, options)
+               TestFinchRequest.post(endpoint(ambush), req_body, headers, options)
     end
 
-    test "request/5 success response", %{lasso: lasso} do
-      Lasso.expect_once(lasso, "DELETE", "/", fn conn ->
+    test "request/5 success response", %{ambush: ambush} do
+      Ambush.expect_once(ambush, "DELETE", "/", fn conn ->
         Plug.Conn.send_resp(conn, 200, "OK")
       end)
 
       assert {:ok, %Response{status: 200, body: "OK"}} =
-               TestFinchRequest.request(:delete, endpoint(lasso), "", [], [])
+               TestFinchRequest.request(:delete, endpoint(ambush), "", [], [])
     end
   end
 
   describe "telemetry" do
-    setup %{lasso: lasso} do
-      Lasso.expect_once(lasso, "GET", "/", fn conn ->
+    setup %{ambush: ambush} do
+      Ambush.expect_once(ambush, "GET", "/", fn conn ->
         Plug.Conn.send_resp(conn, 200, "OK")
       end)
 
       :ok
     end
 
-    test "reports request events", %{lasso: lasso} do
+    test "reports request events", %{ambush: ambush} do
       {test_name, _arity} = __ENV__.function
 
       parent = self()
@@ -90,7 +90,7 @@ defmodule HTTPClientTest do
             assert meta.adapter == HTTPClient.Adapters.HTTPoison
 
             assert meta.args == [
-                     endpoint(lasso),
+                     endpoint(ambush),
                      [{"content-type", "application/json"}],
                      [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
                    ]
@@ -103,7 +103,7 @@ defmodule HTTPClientTest do
             assert meta.adapter == HTTPClient.Adapters.HTTPoison
 
             assert meta.args == [
-                     endpoint(lasso),
+                     endpoint(ambush),
                      [{"content-type", "application/json"}],
                      [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
                    ]
@@ -130,7 +130,7 @@ defmodule HTTPClientTest do
       headers = [{"content-type", "application/json"}]
       options = [params: %{a: 1, b: 2}, basic_auth: {"username", "password"}]
 
-      assert {:ok, %{status: 200}} = TestDefaultRequest.get(endpoint(lasso), headers, options)
+      assert {:ok, %{status: 200}} = TestDefaultRequest.get(endpoint(ambush), headers, options)
       assert_receive {^ref, :start}
       assert_receive {^ref, :stop}
 
@@ -139,14 +139,14 @@ defmodule HTTPClientTest do
   end
 
   describe "response" do
-    test "same for all adapters", %{lasso: lasso} do
-      Lasso.expect(lasso, "POST", "/", fn conn ->
+    test "same for all adapters", %{ambush: ambush} do
+      Ambush.expect(ambush, "POST", "/", fn conn ->
         Plug.Conn.send_resp(conn, 200, "OK")
       end)
 
       headers = [{"content-type", "application/json"}]
       options = [params: %{a: 1, b: 2}]
-      url = endpoint(lasso)
+      url = endpoint(ambush)
 
       assert {:ok, finch_response} = TestFinchRequest.post(url, "{}", headers, options)
       assert {:ok, default_response} = TestDefaultRequest.post(url, "{}", headers, options)
